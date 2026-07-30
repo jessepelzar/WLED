@@ -334,37 +334,11 @@ PlatformIO's original binary remains at:
 .pio/build/<environment>/firmware.bin
 ```
 
-## Supabase MCP for Codex
+## Local MCP configuration
 
-The project-scoped `.codex/config.toml` defines the streamable HTTP MCP server
-named `supabase` for project `kjcccohhtrjewpasjvic`. No API key or access token
-is committed. Its default approval mode prompts for tools classified as writes.
-
-Codex loads project `.codex/config.toml` only for trusted projects. Open this
-repository in Codex and approve the trust prompt if it appears. Then, from the
-repository root, start the Supabase browser-based OAuth flow:
-
-```bash
-codex mcp login supabase
-```
-
-Log in to Supabase in the browser and grant the requested organization access.
-The hosted Supabase MCP server uses dynamic OAuth client registration, so a
-personal access token is not normally required.
-
-Verify the configured server:
-
-```bash
-codex mcp list
-codex mcp get supabase
-```
-
-In the ChatGPT desktop app or Codex IDE extension, restart the client after
-trusting the project, open MCP servers, select `supabase`, and choose
-**Authenticate** if it still shows that OAuth is required.
-
-Supabase recommends connecting its MCP server only to development and testing
-data, not production data. Review tool calls before allowing database writes.
+MCP server URLs, project references, and authentication belong in the user's
+local Codex configuration and are not stored in this repository. The `.codex/`
+directory is ignored to prevent local MCP configuration from being committed.
 
 ## Validation
 

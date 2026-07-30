@@ -26,6 +26,7 @@ wled-update.sh
 /releases/
 
 /.env.wled-deploy
+/.codex/
 
 /wled00/extLibs
 /wled00/LittleFS
