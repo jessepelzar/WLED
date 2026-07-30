@@ -26,6 +26,7 @@ wled-update.sh
 /releases/
 
 /.env.wled-deploy
+/*.command
 /.codex/
 
 /wled00/extLibs
