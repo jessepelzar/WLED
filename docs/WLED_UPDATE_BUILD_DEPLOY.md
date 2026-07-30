@@ -105,6 +105,23 @@ unchanged.
 The real `.env.wled-deploy` and the generated `releases/` directory are ignored
 by Git.
 
+## Double-click build and upload
+
+After `.env.wled-deploy` is configured, open Finder and double-click:
+
+```text
+Build and Upload WLED.command
+```
+
+The launcher requires no flags. It runs the complete workflow: update from the
+fork, merge official WLED, build the configured PlatformIO environment, push
+the successful merge, upload the versioned firmware and checksum, validate the
+remote checksum, and update `latest.bin`.
+
+The Terminal window remains open after success or failure so the completion
+summary or error can be read. The launcher resolves the repository from its own
+location, so it works regardless of Finder's starting directory.
+
 ## SSH deployment
 
 Use SSH key authentication. For example:
