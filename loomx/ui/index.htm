@@ -54,6 +54,10 @@ header .who span{display:flex;align-items:center;gap:6px;font-size:11.5px;color:
 .iconbtn{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;color:var(--t2)}
 .iconbtn:active{background:var(--s2)}
 .iconbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.live-resume{display:none;min-height:36px;padding:0 12px;border-radius:9px;background:var(--lime);
+  color:var(--ink);font-size:11px;font-weight:700;letter-spacing:.035em;white-space:nowrap}
+.live-resume.on{display:block}
+.live-resume:active{filter:brightness(.92)}
 
 main{padding:0 var(--pad)}
 .view{display:none;padding:18px 0 8px}
@@ -264,6 +268,19 @@ nav button.on{color:var(--lime)}
 .saved.on{opacity:1}
 .foot{padding:22px 0 8px;text-align:center;font-size:11.5px;color:var(--t4);line-height:1.6}
 .foot a{color:var(--cyan)}
+.live-splash{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;
+  padding:calc(28px + env(safe-area-inset-top)) 24px calc(28px + env(safe-area-inset-bottom));
+  background:var(--bg)}
+.live-splash.on{display:flex}
+.live-panel{width:min(100%,420px);text-align:center}
+.live-mark{width:54px;height:54px;margin:0 auto 24px;border-radius:50%;display:grid;place-items:center;
+  color:var(--cyan);background:var(--s1)}
+.live-mark svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round}
+.live-panel .lbl{color:var(--cyan)}
+.live-panel h2{margin-top:10px;font-size:28px;line-height:1.12;font-weight:500;letter-spacing:-.035em}
+.live-panel p{max-width:330px;margin:12px auto 26px;color:var(--t2);font-size:14px}
+.live-panel .btn{width:100%}
 </style>
 </head>
 <body>
@@ -274,6 +291,7 @@ nav button.on{color:var(--lime)}
     <span><i class="dot" id="hDot"></i><span id="hNet">connecting...</span></span>
   </div>
   <span class="saved" id="hSaved">saved</span>
+  <button class="live-resume" id="hLiveResume">Resume data</button>
   <button class="iconbtn" id="hId" title="Flash the lights so you can find this node">
     <svg viewBox="0 0 24 24"><path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3 4.9 4.9M19.1 19.1l-1.4-1.4M17.7 6.3l1.4-1.4M4.9 19.1l1.4-1.4"/><circle cx="12" cy="12" r="3.5"/></svg>
   </button>
@@ -346,6 +364,18 @@ nav button.on{color:var(--lime)}
   <div class="sb" id="shB"></div>
 </div>
 
+<div class="live-splash" id="liveSplash" role="dialog" aria-modal="true" aria-labelledby="liveTitle">
+  <div class="live-panel">
+    <div class="live-mark">
+      <svg viewBox="0 0 24 24"><path d="M5 8.5a9 9 0 0 1 14 0M8 12a5 5 0 0 1 8 0"/><circle cx="12" cy="16" r="1.5"/></svg>
+    </div>
+    <span class="lbl" id="liveMode">Live data</span>
+    <h2 id="liveTitle">This node is receiving data</h2>
+    <p>The incoming stream has control of the lights. Override it temporarily to use this screen.</p>
+    <button class="btn pri" id="liveOverride">Override temporarily</button>
+  </div>
+</div>
+
 <script>
 (function(){
 "use strict";
@@ -378,9 +408,12 @@ var ampsOf=function(o){return o.len*maOf(o)/1000};
    Real WLED JSON API, with a local stand-in when nothing answers so the page
    can be reviewed on a desktop before it is ever uploaded. */
 var MOCK=false;
+var BLACK=[0,0,0];
+var HIGHLIGHT=[200,255,47];
 var MEM={
-  info:{name:'Loomx Node A',ver:'0.15.0',uptime:5360000,ip:'192.168.1.42',ssid:'Hillcrest 5G',rssi:-54,ap:false,arch:'esp32'},
-  state:{on:true,bri:184,seg:[{fx:0,col:[[255,170,80]]}]},
+  info:{name:'Loomx Node A',ver:'0.15.0',uptime:5360000,ip:'192.168.1.42',ssid:'Hillcrest 5G',rssi:-54,ap:false,arch:'esp32',live:false,liveMode:'',liveIp:''},
+  state:{on:true,bri:184,seg:[{fx:0,col:[BLACK.slice()]}]},
+  startup:{on:true,bri:184,ps:0},
   outs:[
     {len:100,type:'WS2812B / SK6812',order:'GRB',pin:2},
     {len:100,type:'WS2812B / SK6812',order:'GRB',pin:4},
@@ -412,6 +445,7 @@ var api={
         ip:info.ip||location.hostname,ssid:info.ssid||'',
         rssi:(info.wifi&&info.wifi.signal)||0,ap:!!(info.wifi&&info.wifi.ap),arch:info.arch||'esp32'};
       S.on=!!st.on; S.bri=st.bri==null?128:st.bri;
+      syncLive(st,info);
       var sg=st.seg&&st.seg[0];
       S.col=(sg&&sg.col&&sg.col[0])||S.col;
       S.fx=(sg&&sg.fx)||0;
@@ -422,14 +456,23 @@ var api={
       return req('/json/cfg').catch(function(){return null});
     }).then(function(cfg){
       S.outs=busesFrom(cfg)||S.outs; S.net=netFrom(cfg)||S.net; S.ap=apFrom(cfg)||S.ap;
+      S.startup=startupFrom(cfg);
     }).catch(function(){
       MOCK=true;
       S.info=copy(MEM.info); S.on=MEM.state.on; S.bri=MEM.state.bri;
+      S.live=!!MEM.info.live; S.liveMode=MEM.info.liveMode||''; S.liveIp=MEM.info.liveIp||'';
+      S.liveOverride=0;
       S.col=MEM.state.seg[0].col[0].slice(); S.fx=MEM.state.seg[0].fx||0;
       S.outs=MEM.outs.map(copy); S.net=copy(MEM.net); S.ap=copy(MEM.ap);
+      S.startup=copy(MEM.startup);
     });
   },
   setState:function(p){ if(MOCK){ assign(MEM.state,p); return Promise.resolve(); } return req('/json/state',p); },
+  setStartupBrightness:function(){
+    S.startup={on:true,bri:S.bri,ps:0};
+    if(MOCK){ MEM.startup=copy(S.startup); return Promise.resolve(); }
+    return req('/json/cfg',{def:{on:true,bri:S.bri,ps:0}});
+  },
   /* pixel count, type, order and pin all live on the LED bus config */
   setBus:function(i,patch){
     if(S.outs[i]) assign(S.outs[i],patch);
@@ -495,13 +538,83 @@ function netFrom(cfg){
 }
 function apFrom(cfg){ var a=cfg&&cfg.ap;
   return a?{ssid:a.ssid||'Loomx Node',pass:a.psk||'loomx1234'}:null }
+function startupFrom(cfg){ var d=cfg&&cfg.def;
+  return d?{on:!!d.on,bri:d.bri==null?128:d.bri,ps:d.ps||0}:null }
 
 /* ------------------------------------------------------------------- state */
-var S={info:{},on:true,bri:184,col:[255,170,80],fx:0,eff:null,
-  outs:[],net:{},ap:{},view:'home',test:null,pre:null};
+var S={info:{},on:true,bri:184,col:BLACK.slice(),fx:0,eff:null,
+  outs:[],net:{},ap:{},startup:null,view:'home',test:null,
+  live:false,liveMode:'',liveIp:'',liveOverride:0};
 var pct=function(){return Math.round(S.bri/255*100)};
 var totalPx=function(){return S.outs.reduce(function(a,o){return a+o.len},0)};
 var totalA=function(){return S.outs.reduce(function(a,o){return a+ampsOf(o)},0)};
+function blackPayload(){
+  return {on:true,bri:S.bri,
+    seg:[{fx:0,pal:0,col:[BLACK.slice(),BLACK.slice(),BLACK.slice()]}]};
+}
+function setBlackLocal(){
+  S.on=true; S.fx=0; S.col=BLACK.slice();
+}
+function isBlackState(){
+  return !S.test&&S.fx===0&&S.col.join()===BLACK.join();
+}
+/* Normal operation is intentionally on at the last brightness but outputting
+   black. Tests are temporary and always return here. */
+function resumeBlack(){
+  S.test=null; setBlackLocal();
+  $('#tbar').classList.remove('on');
+  return api.setState(blackPayload());
+}
+/* Persist only completed brightness adjustments, not every drag event, to
+   avoid needless configuration writes to flash. */
+function persistStartupBrightness(){
+  if(S.bri<1) return Promise.resolve();
+  var d=S.startup;
+  if(d&&d.on&&d.ps===0&&d.bri===S.bri) return Promise.resolve();
+  return api.setStartupBrightness();
+}
+function syncLive(st,info){
+  st=st||{}; info=info||{};
+  S.live=!!info.live;
+  S.liveMode=info.lm||'';
+  S.liveIp=info.lip||'';
+  S.liveOverride=st.lor==null?0:Number(st.lor)||0;
+}
+function liveNodeName(){
+  var n=(S.info.name||'').trim();
+  if(!n) return 'This node';
+  var m=n.match(/\bNode\s*#?\s*([A-Za-z0-9]+)\b/i);
+  return m?('Node '+m[1]):n;
+}
+function paintLive(){
+  var blocked=S.live&&S.liveOverride===0;
+  $('#liveSplash').classList.toggle('on',blocked);
+  $('#liveSplash').setAttribute('aria-hidden',blocked?'false':'true');
+  $('#hLiveResume').classList.toggle('on',S.live&&S.liveOverride>0);
+  $('#liveTitle').textContent=liveNodeName()+' is receiving data';
+  var detail=S.liveMode||'Live data';
+  if(S.liveIp) detail+=' · '+S.liveIp;
+  $('#liveMode').textContent=detail;
+}
+function overrideLive(){
+  var previous=S.liveOverride;
+  S.liveOverride=1; S.test=null; setBlackLocal(); paintLive(); renderHome();
+  var p=blackPayload(); p.lor=1;
+  return api.setState(p).then(flashSaved,function(){
+    S.liveOverride=previous; paintLive();
+  });
+}
+function resumeLive(){
+  var previous=S.liveOverride;
+  S.liveOverride=0; paintLive();
+  return api.setState({lor:0}).then(function(){
+    flashSaved();
+  },function(){
+    S.liveOverride=previous; paintLive();
+  });
+}
+$('#liveOverride').onclick=overrideLive;
+$('#hLiveResume').onclick=resumeLive;
 function uniCount(){
   var ch=0; S.outs.forEach(function(o){ ch+=o.len*(typeOf(o.type).w?4:3) });
   return Math.max(1,Math.ceil(ch/510));
@@ -601,12 +714,15 @@ var fillSig='';
 function paintFill(){
   var f=$('#briTex'); if(!f) return;
   var t=S.test?testOf(S.test):null;
-  var fx=t?(t.fx||0):(S.fx||0);
+  var ready=isBlackState();
+  var fx=ready?0:(t?(t.fx||0):(S.fx||0));
   var kind=barKind(fx);
-  var c=(t?t.c:S.col)||[255,170,80];
+  /* Black emits no visible hue, so the control keeps the design-system
+     highlighter color while still reporting the real black output state. */
+  var c=ready?HIGHLIGHT:((t?t.c:S.col)||HIGHLIGHT);
   /* the label is cheap to rewrite; the animation is not, so name it first and leave */
   var lbl=$('#briFx');
-  if(lbl) lbl.textContent = t ? t.n : (fx?fxName(fx):'Solid color');
+  if(lbl) lbl.textContent = ready ? 'Black · ready' : (t ? t.n : (fx?fxName(fx):'Solid color'));
   var sig=kind+'|'+c.join(',');
   if(sig===fillSig) return;                 /* nothing changed - do not restart it */
   fillSig=sig;
@@ -636,26 +752,34 @@ function setKnob(p){
     var cx=e.touches?e.touches[0].clientX:e.clientX;
     var p=clamp(Math.round((cx-r.left)/r.width*100),0,100);
     S.bri=Math.round(p*255/100); S.on=p>0;
+    if(S.on&&!S.test) setBlackLocal();
     $('#briVal').innerHTML=p+'<i>%</i>'; setKnob(p); paintPower();
-    push('bri',function(){return api.setState({on:S.on,bri:S.bri})},120);
+    push('bri',function(){
+      return api.setState(S.on&&!S.test?blackPayload():{on:S.on,bri:S.bri});
+    },120);
   }
   el.addEventListener('pointerdown',function(e){drag=true;set(e);e.preventDefault()});
   el.addEventListener('pointermove',function(e){if(drag)set(e)});
-  window.addEventListener('pointerup',function(){drag=false});
+  window.addEventListener('pointerup',function(){
+    if(drag&&S.bri>0) push('startupBri',persistStartupBrightness,400);
+    drag=false;
+  });
   window.addEventListener('pointercancel',function(){drag=false});
 })();
 $('#btnPwr').onclick=function(){
   S.on=!S.on;
   /* coming back from off with the dial at zero would look broken, so give it a level */
   if(S.on&&S.bri<8) S.bri=128;
-  api.setState(S.on?{on:true,bri:S.bri}:{on:false}).then(flashSaved,function(){});
+  var change=S.on
+    ? resumeBlack().then(persistStartupBrightness)
+    : api.setState({on:false});
+  change.then(flashSaved,function(){});
   renderHome();
 };
 
 function toggleTest(k){
   if(S.test===k) return stopTest();
   var t=null; TESTS.forEach(function(x){if(x.k===k)t=x});
-  if(!S.pre) S.pre={on:S.on,bri:S.bri,fx:S.fx,col:S.col.slice()};
   S.test=k; S.fx=t.fx||0;
   $('#tbar').classList.add('on');
   $('#tbarT').textContent=t.n+' test running';
@@ -665,19 +789,15 @@ function toggleTest(k){
       col:[t.c,[0,0,0],[0,0,0]]}]}).then(renderHome,renderHome);
 }
 function stopTest(){
-  S.test=null; $('#tbar').classList.remove('on');
-  var p=S.pre; S.pre=null;
   var done=function(){renderHome()};
-  if(p){ S.fx=p.fx; S.col=p.col.slice();
-    return api.setState({on:p.on,bri:p.bri,seg:[{fx:p.fx,col:[p.col,[0,0,0],[0,0,0]]}]}).then(done,done) }
-  done();
+  return resumeBlack().then(done,done);
 }
 $('#tbarStop').onclick=stopTest;
 $('#hId').onclick=function(){
   var el=$('#hId'); el.style.color='var(--acc)';
-  var keep={on:S.on,bri:S.bri}, i=0;
+  var i=0;
   (function blink(){
-    if(i++>=6){ api.setState(keep); el.style.color=''; return }
+    if(i++>=6){ resumeBlack().then(function(){renderHome()}); el.style.color=''; return }
     api.setState({on:true,bri:255,seg:[{fx:0,col:[[255,255,255]]}]});
     setTimeout(function(){ api.setState({on:false});
       setTimeout(blink,150) },150);
@@ -975,10 +1095,10 @@ var CAL_NAME={R:'Red',G:'Green',B:'Blue',W:'White'};
 function calibrate(idx,toAll){
   var o=S.outs[idx], isW=!!typeOf(o.type).w;
   var answers=[], total=isW?3:2;
-  var prev={order:o.order,on:S.on,bri:S.bri};
+  var prev={order:o.order};
   onClose=function(){
     api.setBus(idx,{order:prev.order}).then(function(){
-      return api.setState({on:prev.on,bri:prev.bri,seg:[{fx:0}]});
+      return resumeBlack();
     },function(){}).then(function(){ renderOuts() },function(){});
   };
 
@@ -1039,7 +1159,7 @@ function calibrate(idx,toAll){
       function(){
         $('#calAgain').onclick=function(){ calibrate(idx,toAll) };
         $('#calOk').onclick=function(){
-          api.setState({on:prev.on,bri:prev.bri,seg:[{fx:0}]}).then(function(){
+          resumeBlack().then(function(){
             flashSaved(); closeSheet(); renderOuts(); renderHome();
           },function(){});
         };
@@ -1325,6 +1445,7 @@ function paint(){
   $('#hDot').className='dot'+(ap?' ap':(S.info.ssid?'':' off'));
   $('#hNet').textContent=ap?('Access point · '+S.ap.ssid)
     :(S.info.ssid?(S.info.ssid+' · '+(S.info.ip||'')):'No network');
+  paintLive();
   if(S.view==='home') renderHome();
   if(S.view==='out') renderOuts();
   if(S.view==='set') renderSetup();
@@ -1332,22 +1453,38 @@ function paint(){
 window.addEventListener('resize',function(){ if(S.view==='home') setKnob(pct()) });
 
 api.load().then(function(){
+  /* Loading the UI establishes the safe idle state without changing the
+     brightness stored by WLED. An active stream keeps control until the
+     operator explicitly requests a temporary override. */
+  if(S.live&&S.liveOverride===0) return Promise.resolve();
+  return persistStartupBrightness().then(resumeBlack,resumeBlack);
+}).then(function(){
   paint();
-  /* stay honest if someone drives the node from Loomx Ctrl while this is open */
+},function(){
+  paint();
+}).then(function(){
+  /* Stay honest if Loomx Ctrl starts or stops a stream while this is open. */
   setInterval(function(){
-    if(MOCK||S.test||$('#sheet').classList.contains('on')) return;
-    req('/json/state').then(function(st){
+    if(MOCK) return;
+    req('/json/si').then(function(j){
+      var st=j.state||{}, info=j.info||{};
+      var wasLive=S.live, wasOverride=S.liveOverride;
+      syncLive(st,info); paintLive();
+      if(wasLive&&!S.live&&!S.test) resumeBlack().then(function(){
+        if(S.view==='home') renderHome();
+      },function(){});
+      if(S.test||$('#sheet').classList.contains('on')||(S.live&&S.liveOverride===0)) return;
       var sg=st.seg&&st.seg[0], col=sg&&sg.col&&sg.col[0];
       var moved=st.bri!=null&&Math.abs(st.bri-S.bri)>2;
       var recol=col&&col.join()!==S.col.join();
       var refx=sg&&sg.fx!=null&&sg.fx!==S.fx;
-      if(moved||recol||refx||(st.on!=null&&!!st.on!==S.on)){
+      if(moved||recol||refx||(st.on!=null&&!!st.on!==S.on)||wasOverride!==S.liveOverride){
         if(st.bri!=null) S.bri=st.bri;
         S.on=!!st.on; if(col) S.col=col.slice(); if(refx) S.fx=sg.fx;
         if(S.view==='home') renderHome();
       }
     },function(){});
-  },4000);
+  },2000);
 });
 window.LOOMX={S:S,api:api,go:go,calibrate:calibrate,
   addOutput:addOutput,removeOutput:removeOutput,setOutCount:setOutCount,freePin:freePin,MAXOUT:MAXOUT,
@@ -1355,6 +1492,7 @@ window.LOOMX={S:S,api:api,go:go,calibrate:calibrate,
   global:sheetGlobal,ports:sheetPorts,wifi:sheetWifi,proto:sheetProto,ap:sheetAp,name:sheetName,
   firmware:sheetFirmware,backup:sheetBackup},
   closeSheet:function(){closeSheet()},toggleTest:toggleTest,uniCount:uniCount,
+  overrideLive:overrideLive,resumeLive:resumeLive,paintLive:paintLive,syncLive:syncLive,
   totalPx:totalPx,totalA:totalA,typeOf:typeOf};
 })();
 </script>
