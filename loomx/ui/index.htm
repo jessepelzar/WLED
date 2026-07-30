@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<title>Loomx Node</title>
+<style>
+/* ==========================================================================
+   Loomx Node - custom web UI served from the controller.
+   Runs on a phone, on a ladder, at dusk. One accent, hairlines only, no shadows.
+   ========================================================================== */
+:root{
+  /* dark stays dark; every surface is a luminance step, never an outline */
+  --bg:#07080a; --s1:#101216; --s2:#171a20; --s3:#212630;
+  --hair:rgba(255,255,255,.05);
+  --t1:#f2f4f7; --t2:#98a0aa; --t3:#5f6873; --t4:#3d4550;
+  --ink:#0c0e11;                       /* text that sits on a neon fill */
+  /* five neons, each with one job - that is what keeps it from going loud */
+  --lime:#c8ff2f;                      /* the action worth taking */
+  --cyan:#25e8e0;                      /* live, joined, informational */
+  --pink:#ff3d87;                      /* destructive */
+  --amber:#ffb327;                     /* heat and caution */
+  --violet:#9d6bff;                    /* second identity */
+  --red:#ff3355;                       /* over the limit, not merely warm */
+  --acc:var(--lime); --ok:var(--lime); --warn:var(--amber); --bad:var(--pink);
+  --r2:14px; --ease:cubic-bezier(.22,.8,.26,1); --pad:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg); color:var(--t1);
+  font:400 15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  letter-spacing:-.006em; font-variant-numeric:tabular-nums; -webkit-font-smoothing:antialiased;
+  min-height:100vh; padding-bottom:calc(64px + env(safe-area-inset-bottom)); overscroll-behavior-y:contain;
+}
+button,input,select{font:inherit;color:inherit;background:none;border:0;outline:0;font-variant-numeric:tabular-nums}
+button{cursor:pointer}
+input,select{-webkit-appearance:none;appearance:none}
+.lbl{font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--t3);font-weight:600}
+.dim{color:var(--t3)}
+h1{font-size:17px;font-weight:600;letter-spacing:-.02em}
+
+header{
+  position:sticky;top:0;z-index:20;background:rgba(16,18,22,.94);backdrop-filter:saturate(160%) blur(14px);
+  padding:calc(10px + env(safe-area-inset-top)) var(--pad) 10px;
+  display:flex;align-items:center;gap:12px
+}
+header .who{flex:1 1 auto;min-width:0}
+header .who b{display:block;font-size:15px;font-weight:600;letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .who span{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t3);margin-top:1px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);flex:0 0 auto}
+.dot.ap{background:var(--amber)} .dot.off{background:var(--t4)}
+.iconbtn{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;color:var(--t2)}
+.iconbtn:active{background:var(--s2)}
+.iconbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+main{padding:0 var(--pad)}
+.view{display:none;padding:18px 0 8px}
+.view.on{display:block}
+nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;
+  background:rgba(16,18,22,.96);backdrop-filter:saturate(160%) blur(14px);
+  padding-bottom:env(safe-area-inset-bottom)
+}
+nav button{flex:1 1 0;height:56px;display:grid;place-items:center;gap:3px;color:var(--t3);font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+nav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--lime)}
+
+.card{background:var(--s1);border-radius:var(--r2);padding:16px}
+.sec{margin:26px 0 10px;display:flex;align-items:baseline;gap:10px}
+.sec .lbl{flex:1 1 auto}
+.sec em{font-style:normal;font-size:11px;color:var(--t4)}
+
+.rows{background:var(--s1);border-radius:var(--r2);overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;padding:14px 16px;width:100%;text-align:left;position:relative}
+.row+.row::before{content:'';position:absolute;left:16px;right:0;top:0;height:1px;background:var(--hair)}
+.row:active{background:var(--s2)}
+.row .rl{flex:1 1 auto;min-width:0}
+.row .rl b{display:block;font-weight:400;font-size:15px}
+.row .rl small{display:block;font-size:12px;color:var(--t3);margin-top:1px}
+.row .rv{color:var(--t2);font-size:14px;white-space:nowrap}
+.row .chev{color:var(--t3);flex:0 0 auto}
+
+.bri{background:var(--s1);border-radius:var(--r2);padding:18px 16px 14px}
+.bri .top{display:flex;align-items:flex-end;gap:10px;margin-bottom:16px}
+.bri .val{font-size:38px;line-height:1;font-weight:300;letter-spacing:-.045em}
+.bri .val{color:var(--lime)}
+.bri .val i{font-style:normal;font-size:17px;color:var(--lime);opacity:.55;margin-left:2px;letter-spacing:0}
+.bri .top .tinfo{flex:1 1 auto;padding-bottom:4px}
+.bri .top .fxname{display:block;font-size:12.5px;color:var(--t2);margin-top:3px}
+.slide{position:relative;height:44px;display:flex;align-items:center;touch-action:none}
+.slide .trk{position:absolute;left:0;right:0;height:8px;border-radius:5px;background:var(--s3);overflow:hidden}
+.slide .fil{position:absolute;left:0;top:0;bottom:0;border-radius:5px;overflow:hidden}
+/* anchored to the track, not to the fill, so the level never moves the texture.
+   --tw is the track width, so one tile == one slider length. */
+.slide .tex{position:absolute;left:0;top:0;bottom:0;width:100vw;max-width:none;
+  background-repeat:repeat;background-size:var(--tw,320px) 100%;
+  animation:flowW var(--sp,5.5s) linear infinite;will-change:background-position}
+/* travel exactly one slider length per loop - seamless, and left to right */
+@keyframes flowW{from{background-position:0 0}to{background-position:var(--tw,320px) 0}}
+/* the bar moves the way the run is moving, so you can read the effect without looking up */
+.slide .tex.fx-solid   {--sp:5.5s}
+.slide .tex.fx-sweep   {--sp:3s}
+.slide .tex.fx-chase   {--sp:1.6s}
+.slide .tex.fx-spectrum{--sp:3s}
+.slide .tex.fx-cycle   {animation:huecycle 7s ease-in-out infinite;background-image:none}
+.slide .tex.fx-blink   {--sp:5.5s;animation:flowW var(--sp) linear infinite, blinkA .72s steps(1,end) infinite}
+.slide .tex.fx-breathe {--sp:5.5s;animation:flowW var(--sp) linear infinite, breatheA 2.9s ease-in-out infinite}
+@keyframes blinkA{0%,49.9%{opacity:1}50%,100%{opacity:.2}}
+@keyframes breatheA{0%,100%{opacity:.38}50%{opacity:1}}
+/* nothing is lit, so stop pretending anything is moving */
+.bri.dark .slide .tex{animation-play-state:paused}
+/* one solid colour easing from hue to hue - what color scroll actually does */
+@keyframes huecycle{
+  0%{background-color:#ff3355}   17%{background-color:#ffb327}
+  34%{background-color:#c8ff2f}  50%{background-color:#25e8e0}
+  67%{background-color:#4da3ff}  84%{background-color:#9d6bff}
+  100%{background-color:#ff3355}}
+.hue-cycle{animation:huecycle 7s ease-in-out infinite;background-image:none}
+.slide .kn{position:absolute;width:26px;height:26px;border-radius:50%;background:#fff;transform:translateX(-13px)}
+.slide .kn::after{content:'';position:absolute;inset:-11px}
+.pwr{display:flex;gap:8px;margin-top:14px}
+.pbig{width:100%;height:60px;border-radius:13px;margin-top:18px;font-size:16.5px;font-weight:700;
+  letter-spacing:-.01em;display:grid;place-items:center;
+  transition:background .18s var(--ease),color .18s var(--ease)}
+/* lit: this is the kill switch, and on a live install you want to find it fast */
+.pbig.lit{background:var(--red);color:#fff}
+/* dark: the room is off and this is the one thing worth pressing */
+.pbig.dark{background:var(--lime);color:var(--ink)}
+.pbig:active{filter:brightness(.94)}
+/* nothing is lit, so stop the dial pretending it matters */
+.bri.dark .val,.bri.dark .slide{opacity:.42}
+.btn{flex:1 1 0;min-height:48px;padding:12px 18px;border-radius:11px;background:var(--s2);color:var(--t1);
+  font-size:14px;font-weight:500;line-height:1.25;text-align:center;
+  display:flex;align-items:center;justify-content:center;transition:background .12s var(--ease)}
+.btn:active{background:var(--s3)}
+.btn.pri{background:var(--lime);color:var(--ink);font-weight:600}
+.btn.quiet{background:var(--s2);color:var(--t1);font-weight:500}
+.btn.bad{background:var(--pink);color:var(--ink);font-weight:600}
+.btn.sm{min-height:38px;padding:0 14px;font-size:13px;border-radius:9px;flex:0 0 auto}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stats>div{background:var(--s1);padding:13px 15px;border-radius:12px}
+.stats .k{font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--t3);font-weight:600}
+.stats .v{font-size:19px;margin-top:4px;letter-spacing:-.025em}
+.stats .v i{font-style:normal;font-size:12px;color:var(--t3);margin-left:3px}
+.stats .v.hot,.stats .v.hot i{color:var(--amber)}
+
+.out{background:var(--s1);border-radius:var(--r2);overflow:hidden}
+.out+.out{margin-top:10px}
+.out .oh{display:flex;align-items:center;gap:10px;padding:14px 16px 12px}
+.out .oh b{flex:1 1 auto;font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--lime)}
+.out .oh .gp{font-size:10.5px;color:var(--t3);letter-spacing:.06em;background:var(--s2);
+  padding:3px 8px;border-radius:6px}
+.out .ob{padding:0 16px 14px}
+.step{display:flex;align-items:center;gap:10px}
+.step button{width:56px;height:52px;border-radius:11px;background:var(--s2);color:var(--lime);display:grid;place-items:center;font-size:24px;font-weight:400;line-height:1;flex:0 0 auto}
+.step button:active{background:var(--s3)}
+.step .qty{flex:1 1 auto;height:52px;border-radius:11px;background:var(--s2);display:flex;align-items:center;justify-content:center;padding:0 8px}
+.step .qty input{width:100%;text-align:center;font-size:22px;letter-spacing:-.02em;background:none;padding:0}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.fld{display:block}
+.fld .lbl{display:block;margin-bottom:6px}
+.sel{width:100%;height:44px;border-radius:10px;background:var(--s2);padding:0 34px 0 12px;font-size:14px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2361676f' stroke-width='2' stroke-linecap='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-repeat:no-repeat;background-position:right 11px center;background-size:15px}
+/* sits directly under the field it changes, at the weight a once-per-install action earns */
+.detect{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;margin-top:8px;
+  color:var(--lime);font-size:13px;font-weight:600;text-align:left}
+.detect:active{opacity:.55}
+.detect svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.detect em{font-style:normal;color:var(--t3);font-weight:400}
+.drawline{display:flex;align-items:center;gap:8px;margin-top:11px;font-size:11.5px;color:var(--t3)}
+.drawline b{color:var(--t2);font-weight:500}
+.drawline.warm b{color:var(--amber)}
+/* past 7.5 A the whole line goes red, not just the number - you should not have to hunt for it */
+.drawline.over{color:var(--red)}
+.drawline.over b{color:var(--red);font-weight:700}
+.bar{flex:1 1 auto;height:3px;border-radius:2px;background:var(--s3);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--lime)}
+.bar.hot i{background:var(--amber)}
+.bar.over i{background:var(--red)}
+
+.ocount{display:flex;align-items:center;gap:12px;padding:12px 15px;margin-bottom:10px}
+.ocount .lbl{flex:1 1 auto}
+.ministep{display:flex;align-items:center;gap:2px;background:var(--s2);border-radius:10px;padding:3px}
+.ministep button{width:42px;height:36px;border-radius:8px;color:var(--t1);font-size:20px;font-weight:300;display:grid;place-items:center}
+.ministep button:active{background:var(--s3)}
+.ministep button{color:var(--lime)}
+.ministep button[disabled]{color:var(--t4)}
+.ministep .n{min-width:36px;text-align:center;font-size:17px}
+.del{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--t4);flex:0 0 auto;margin:-2px -6px -2px 0}
+.del:active{background:var(--s2);color:var(--pink)}
+.del svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.addout{width:100%;min-height:50px;padding:14px 18px;border-radius:12px;margin-top:10px;background:var(--s1);
+  color:var(--lime);font-size:14px;font-weight:600;line-height:1.3;
+  display:flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.addout[disabled]{color:var(--t3);font-weight:400}
+.addout:active{background:var(--s2)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{height:40px;padding:0 14px;border-radius:10px;background:var(--s2);color:var(--t2);font-size:13.5px;display:flex;align-items:center;gap:8px}
+.chip:active{background:var(--s3)}
+.chip.on{color:var(--ink);font-weight:600}
+.chip i.sw{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
+
+.note{display:flex;gap:10px;padding:12px 14px;border-radius:11px;font-size:12.5px;line-height:1.45;color:var(--t2)}
+.note i{width:6px;height:6px;border-radius:50%;flex:0 0 auto;margin-top:5px}
+.note.w{background:rgba(255,179,39,.09)} .note.w i{background:var(--amber)}
+.note.o{background:rgba(200,255,47,.09)} .note.o i{background:var(--lime)}
+.note.b{background:rgba(255,61,135,.10)} .note.b i{background:var(--pink)}
+.note b{color:var(--t1);font-weight:600;display:block;margin-bottom:2px}
+
+#tbar{position:fixed;left:12px;right:12px;bottom:calc(68px + env(safe-area-inset-bottom));z-index:40;
+  display:none;align-items:center;gap:12px;padding:11px 12px 11px 15px;border-radius:13px;
+  background:var(--s3);backdrop-filter:blur(12px)}
+#tbar.on{display:flex}
+#tbar .tl{flex:1 1 auto;min-width:0}
+#tbar .tl b{display:block;font-size:13px;font-weight:600}
+#tbar .tl small{font-size:11.5px;color:var(--t3)}
+
+#scrim{position:fixed;inset:0;z-index:50;background:rgba(4,5,6,.6);opacity:0;pointer-events:none;transition:opacity .22s var(--ease)}
+#scrim.on{opacity:1;pointer-events:auto}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--s1);border-radius:20px 20px 0 0;
+  transform:translateY(101%);transition:transform .3s var(--ease);max-height:92vh;display:flex;flex-direction:column}
+#sheet.on{transform:none}
+#sheet .sh{display:flex;align-items:center;gap:12px;padding:16px 16px 12px}
+#sheet .sh h1{flex:1 1 auto}
+#sheet .sb{overflow-y:auto;padding:0 16px calc(20px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+.grab{width:34px;height:4px;border-radius:3px;background:var(--s3);margin:8px auto 0}
+
+.cal{text-align:center;padding:4px 0 0}
+.cal .swatch{height:132px;border-radius:16px;margin:0 0 18px;display:grid;place-items:center;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:rgba(0,0,0,.42)}
+.cal p{font-size:15px;color:var(--t2);margin-bottom:4px}
+.cal p b{color:var(--t1);font-weight:600}
+.cal .steps{display:flex;justify-content:center;gap:6px;margin:14px 0 18px}
+.cal .steps i{width:22px;height:3px;border-radius:2px;background:var(--s3)}
+.cal .steps i.on{background:var(--lime)}
+.calopts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.calopt{height:52px;border-radius:11px;background:var(--s2);display:flex;align-items:center;gap:10px;padding:0 14px;font-size:15px}
+.calopt:active{background:var(--s3)}
+.calopt i{width:16px;height:16px;border-radius:5px;flex:0 0 auto}
+
+.wifi{display:flex;align-items:center;gap:12px;padding:13px 4px;width:100%;text-align:left;position:relative}
+.wifi+.wifi::before{content:'';position:absolute;left:4px;right:0;top:0;height:1px;background:var(--hair)}
+.wifi b{flex:1 1 auto;font-weight:400;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wifi .sig{display:flex;gap:2px;align-items:flex-end;height:14px;flex:0 0 auto}
+.wifi .sig i{width:3px;border-radius:1px;background:var(--t4)}
+.wifi .sig i.on{background:var(--cyan)}
+.lock{width:13px;height:13px;stroke:var(--t4);fill:none;stroke-width:1.8;flex:0 0 auto}
+.inp{width:100%;height:48px;border-radius:11px;background:var(--s2);padding:0 14px;font-size:15px;margin-top:6px}
+.inp::placeholder{color:var(--t4)}
+.seg{display:flex;gap:3px;padding:3px;background:var(--s2);border-radius:11px}
+.seg button{flex:1 1 0;height:38px;border-radius:8px;color:var(--t3);font-size:13.5px}
+.seg button.on{background:var(--s3);color:var(--lime);font-weight:600}
+.fldrow{margin-top:14px}
+.fldrow .lbl{display:block;margin-bottom:7px}
+.spin{display:inline-block;width:13px;height:13px;border-radius:50%;border:1.6px solid var(--hair2);border-top-color:var(--t2);animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.saved{font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--lime);font-weight:700;opacity:0;transition:opacity .2s}
+.saved.on{opacity:1}
+.foot{padding:22px 0 8px;text-align:center;font-size:11.5px;color:var(--t4);line-height:1.6}
+.foot a{color:var(--cyan)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="who">
+    <b id="hName">Loomx Node</b>
+    <span><i class="dot" id="hDot"></i><span id="hNet">connecting...</span></span>
+  </div>
+  <span class="saved" id="hSaved">saved</span>
+  <button class="iconbtn" id="hId" title="Flash the lights so you can find this node">
+    <svg viewBox="0 0 24 24"><path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3 4.9 4.9M19.1 19.1l-1.4-1.4M17.7 6.3l1.4-1.4M4.9 19.1l1.4-1.4"/><circle cx="12" cy="12" r="3.5"/></svg>
+  </button>
+</header>
+
+<main>
+  <section class="view on" id="v-home">
+    <div class="bri" id="briCard">
+      <div class="top">
+        <div class="tinfo"><span class="lbl">Brightness</span><span class="fxname" id="briFx"></span></div>
+        <span class="val" id="briVal">72<i>%</i></span>
+      </div>
+      <div class="slide" id="briSlide">
+        <div class="trk"><div class="fil" id="briFil"><i class="tex" id="briTex"></i></div></div>
+        <div class="kn" id="briKn"></div>
+      </div>
+      <button class="pbig lit" id="btnPwr">Turn off</button>
+    </div>
+    <div class="sec"><span class="lbl">This node</span><em id="upStr"></em></div>
+    <div class="stats" id="statGrid"></div>
+    <div class="sec"><span class="lbl">Test</span><em>restores your look when you stop</em></div>
+    <div class="card">
+      <div class="chips" id="testChips"></div>
+      <div class="drawline" id="testDraw"></div>
+    </div>
+    <div class="sec"><span class="lbl">Outputs</span></div>
+    <div class="rows" id="homeOuts"></div>
+    <div class="foot" id="foot"></div>
+  </section>
+
+  <section class="view" id="v-out">
+    <div class="card ocount" id="outCount"></div>
+    <div class="stats" id="outTotals"></div>
+    <div class="chips" style="margin-top:12px">
+      <button class="chip" id="btnGlobal">Apply to all outputs</button>
+      <button class="chip" id="btnPorts">Ports (GPIO)</button>
+    </div>
+    <div class="sec"><span class="lbl">Outputs</span><em>changes send as you make them</em></div>
+    <div id="outList"></div>
+    <div class="foot">Pixel counts, type and color order write straight to the controller.<br>Nothing here needs a save button.</div>
+  </section>
+
+  <section class="view" id="v-set">
+    <div class="sec" style="margin-top:4px"><span class="lbl">Network</span></div>
+    <div class="rows" id="setNet"></div>
+    <div class="sec"><span class="lbl">Show control</span></div>
+    <div class="rows" id="setShow"></div>
+    <div class="sec"><span class="lbl">Hardware</span></div>
+    <div class="rows" id="setHw"></div>
+    <div class="sec"><span class="lbl">This node</span></div>
+    <div class="rows" id="setNode"></div>
+    <div class="foot" id="foot2"></div>
+  </section>
+</main>
+
+<div id="tbar">
+  <div class="tl"><b id="tbarT"></b><small id="tbarS"></small></div>
+  <button class="btn sm pri" id="tbarStop">Stop test</button>
+</div>
+
+<nav>
+  <button class="on" data-v="home"><svg viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10.5V20h12v-9.5"/></svg>Home</button>
+  <button data-v="out"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="8" cy="7" r="1.6"/><circle cx="14" cy="12" r="1.6"/><circle cx="11" cy="17" r="1.6"/></svg>Outputs</button>
+  <button data-v="set"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/></svg>Setup</button>
+</nav>
+
+<div id="scrim"></div>
+<div id="sheet"><div class="grab"></div>
+  <div class="sh"><h1 id="shT"></h1><button class="iconbtn" id="shX"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="sb" id="shB"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var $=function(s){return document.querySelector(s)};
+var $$=function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+var clamp=function(v,a,b){return v<a?a:v>b?b:v};
+var wait=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+
+/* ---------------------------------------------------------- hardware catalogue */
+var TYPES=[
+  {id:22,n:'WS2812B / SK6812',w:0,ma:50},
+  {id:30,n:'SK6812 RGBW',w:1,ma:65},
+  {id:24,n:'WS2811 / UCS1903',w:0,ma:50},
+  {id:31,n:'TM1814 RGBW',w:1,ma:65},
+  {id:51,n:'APA102 / SK9822',w:0,ma:50},
+  {id:52,n:'LPD8806',w:0,ma:50}
+];
+var ORDERS=['RGB','RBG','GRB','GBR','BRG','BGR'];
+var ORDERS_W=['RGBW','RBGW','GRBW','GBRW','BRGW','BGRW'];
+/* ESP32 pins that are actually safe for pixels. 6-11 are wired to flash. */
+var PINS=[2,4,5,12,13,14,15,16,17,18,19,21,22,23,25,26,27,32,33];
+var RISKY={2:'strapping pin',12:'strapping pin',15:'strapping pin'};
+var typeOf=function(n){for(var i=0;i<TYPES.length;i++)if(TYPES[i].n===n)return TYPES[i];return TYPES[0]};
+var maOf=function(o){return typeOf(o.type).ma};
+var ampsOf=function(o){return o.len*maOf(o)/1000};
+
+/* ---------------------------------------------------------------- transport
+   Real WLED JSON API, with a local stand-in when nothing answers so the page
+   can be reviewed on a desktop before it is ever uploaded. */
+var MOCK=false;
+var MEM={
+  info:{name:'Loomx Node A',ver:'0.15.0',uptime:5360000,ip:'192.168.1.42',ssid:'Hillcrest 5G',rssi:-54,ap:false,arch:'esp32'},
+  state:{on:true,bri:184,seg:[{fx:0,col:[[255,170,80]]}]},
+  outs:[
+    {len:100,type:'WS2812B / SK6812',order:'GRB',pin:2},
+    {len:100,type:'WS2812B / SK6812',order:'GRB',pin:4},
+    {len:100,type:'WS2812B / SK6812',order:'GRB',pin:5},
+    {len:100,type:'SK6812 RGBW',order:'GRBW',pin:13}
+  ],
+  net:{proto:'sACN',uni:1,addr:1,timeout:2500,dhcp:true,gw:'192.168.1.1',mask:'255.255.255.0'},
+  ap:{ssid:'Loomx Node',pass:'loomx1234'}
+};
+var SCAN=[
+  {ssid:'Hillcrest 5G',rssi:-52,lock:1},{ssid:'Hillcrest 2.4G',rssi:-58,lock:1},
+  {ssid:'Hillcrest Guest',rssi:-67,lock:1},{ssid:'BT-4KJH2P',rssi:-74,lock:1},
+  {ssid:'Pool House',rssi:-81,lock:1},{ssid:'xfinitywifi',rssi:-86,lock:0}
+];
+function req(url,body){
+  if(MOCK) return Promise.reject(new Error('mock'));
+  var o=body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{};
+  o.cache='no-store';
+  return fetch(url,o).then(function(r){
+    if(!r.ok) throw new Error(r.status);
+    return r.text();
+  }).then(function(t){ return t?JSON.parse(t):{} });
+}
+var api={
+  load:function(){
+    return req('/json').then(function(j){
+      var info=j.info||{}, st=j.state||{};
+      S.info={name:info.name||'Loomx Node',ver:info.ver||'?',uptime:(info.uptime||0)*1000,
+        ip:info.ip||location.hostname,ssid:info.ssid||'',
+        rssi:(info.wifi&&info.wifi.signal)||0,ap:!!(info.wifi&&info.wifi.ap),arch:info.arch||'esp32'};
+      S.on=!!st.on; S.bri=st.bri==null?128:st.bri;
+      var sg=st.seg&&st.seg[0];
+      S.col=(sg&&sg.col&&sg.col[0])||S.col;
+      S.fx=(sg&&sg.fx)||0;
+      /* real effect names cost nothing in flash, so read them off the node */
+      req('/json/eff').then(function(a){
+        if(Array.isArray(a)&&a.length){ S.eff=a; if(S.view==='home') renderHome() }
+      },function(){});
+      return req('/json/cfg').catch(function(){return null});
+    }).then(function(cfg){
+      S.outs=busesFrom(cfg)||S.outs; S.net=netFrom(cfg)||S.net; S.ap=apFrom(cfg)||S.ap;
+    }).catch(function(){
+      MOCK=true;
+      S.info=copy(MEM.info); S.on=MEM.state.on; S.bri=MEM.state.bri;
+      S.col=MEM.state.seg[0].col[0].slice(); S.fx=MEM.state.seg[0].fx||0;
+      S.outs=MEM.outs.map(copy); S.net=copy(MEM.net); S.ap=copy(MEM.ap);
+    });
+  },
+  setState:function(p){ if(MOCK){ assign(MEM.state,p); return Promise.resolve(); } return req('/json/state',p); },
+  /* pixel count, type, order and pin all live on the LED bus config */
+  setBus:function(i,patch){
+    if(S.outs[i]) assign(S.outs[i],patch);
+    if(MOCK){ if(MEM.outs[i]) assign(MEM.outs[i],patch); return Promise.resolve(); }
+    return api.writeBuses();
+  },
+  /* the whole bus array goes over in one shot — adding or deleting an output
+     shifts every start below it, so there is no such thing as a partial write */
+  writeBuses:function(){
+    if(MOCK){ MEM.outs=S.outs.map(copy); return Promise.resolve(); }
+    var start=0;
+    var ins=S.outs.map(function(o){
+      var t=typeOf(o.type);
+      var b={start:start,len:o.len,pin:[o.pin],
+        order:(t.w?ORDERS_W:ORDERS).indexOf(o.order),type:t.id,rev:false,skip:0,rgbw:!!t.w};
+      start+=o.len; return b;
+    });
+    return req('/json/cfg',{hw:{led:{total:start,ins:ins}}});
+  },
+  setNet:function(p){
+    assign(S.net,p);
+    if(MOCK){ assign(MEM.net,p); return Promise.resolve(); }
+    return req('/json/cfg',{"if":{live:{dmx:{uni:S.net.uni,addr:S.net.addr},
+      timeout:Math.round(S.net.timeout/100),
+      e131:{en:S.net.proto==='sACN'},artnet:{en:S.net.proto==='Art-Net'}}}});
+  },
+  setAp:function(p){ assign(S.ap,p);
+    if(MOCK) return Promise.resolve();
+    return req('/json/cfg',{ap:{ssid:S.ap.ssid,psk:S.ap.pass}}); },
+  setName:function(n){ S.info.name=n;
+    if(MOCK){ MEM.info.name=n; return Promise.resolve(); }
+    return req('/json/cfg',{id:{name:n}}); },
+  scan:function(){
+    if(MOCK) return wait(1000).then(function(){return SCAN});
+    return req('/json/net').then(function(j){
+      return (j&&j.networks)?j.networks.map(function(n){
+        return {ssid:n.ssid,rssi:n.rssi,lock:n.enc>0}}):SCAN;
+    }).catch(function(){return SCAN});
+  },
+  join:function(ssid,pass){
+    if(MOCK) return wait(1300).then(function(){MEM.info.ssid=ssid;MEM.info.ap=false;return true});
+    return req('/json/cfg',{nw:{ins:[{ssid:ssid,psk:pass,ip:[0,0,0,0]}]}})
+      .then(function(){return wait(2500)}).then(function(){return true});
+  }
+};
+function copy(o){var r={};for(var k in o)r[k]=o[k];return r}
+function assign(a,b){for(var k in b)a[k]=b[k];return a}
+function busesFrom(cfg){
+  var ins=cfg&&cfg.hw&&cfg.hw.led&&cfg.hw.led.ins;
+  if(!ins||!ins.length) return null;
+  return ins.map(function(b){
+    var t=TYPES[0];
+    for(var i=0;i<TYPES.length;i++) if(TYPES[i].id===b.type){t=TYPES[i];break}
+    var list=t.w?ORDERS_W:ORDERS;
+    return {len:b.len||0,type:t.n,order:list[b.order]||list[2],pin:(b.pin&&b.pin[0])||2};
+  });
+}
+function netFrom(cfg){
+  var l=cfg&&cfg["if"]&&cfg["if"].live; if(!l) return null;
+  var art=l.artnet&&l.artnet.en;
+  return {proto:art?'Art-Net':'sACN',uni:(l.dmx&&l.dmx.uni)||1,addr:(l.dmx&&l.dmx.addr)||1,
+    timeout:(l.timeout||25)*100,dhcp:true,gw:'',mask:''};
+}
+function apFrom(cfg){ var a=cfg&&cfg.ap;
+  return a?{ssid:a.ssid||'Loomx Node',pass:a.psk||'loomx1234'}:null }
+
+/* ------------------------------------------------------------------- state */
+var S={info:{},on:true,bri:184,col:[255,170,80],fx:0,eff:null,
+  outs:[],net:{},ap:{},view:'home',test:null,pre:null};
+var pct=function(){return Math.round(S.bri/255*100)};
+var totalPx=function(){return S.outs.reduce(function(a,o){return a+o.len},0)};
+var totalA=function(){return S.outs.reduce(function(a,o){return a+ampsOf(o)},0)};
+function uniCount(){
+  var ch=0; S.outs.forEach(function(o){ ch+=o.len*(typeOf(o.type).w?4:3) });
+  return Math.max(1,Math.ceil(ch/510));
+}
+var saveT=null;
+function flashSaved(){
+  var el=$('#hSaved'); el.classList.add('on');
+  clearTimeout(saveT); saveT=setTimeout(function(){el.classList.remove('on')},1400);
+}
+/* coalesce rapid stepper taps into one controller write */
+var debounced={};
+function push(key,fn,ms){
+  clearTimeout(debounced[key]);
+  debounced[key]=setTimeout(function(){
+    Promise.resolve().then(fn).then(flashSaved,function(){});
+  },ms==null?550:ms);
+}
+
+/* -------------------------------------------------------------------- home */
+var SPECTRUM='linear-gradient(90deg,#ff3355,#ffb327,#c8ff2f,#25e8e0,#4da3ff,#9d6bff,#ff3355)';
+var TESTS=[
+  {k:'white',n:'White',c:[255,255,255],hint:'every pixel, full output'},
+  {k:'red',n:'Red',c:[255,0,0]},
+  {k:'green',n:'Green',c:[0,255,0]},
+  {k:'blue',n:'Blue',c:[0,0,255]},
+  {k:'warm',n:'Warm',c:[255,147,41]},
+  {k:'rainbow',n:'Rainbow',c:[255,0,0],fx:9,sx:150,g:SPECTRUM,
+   hint:'hues spread along the run and travelling - shows up gaps and dead sections'},
+  {k:'scroll',n:'Color scroll',c:[255,0,0],fx:8,sx:36,cycle:1,
+   hint:'one solid color across the whole run, fading slowly from hue to hue'},
+  {k:'chase',n:'Chase',c:[255,255,255],fx:28,sx:170,ix:32,g:'#c8ff2f',
+   hint:'a single bright head walks the run - the way to find one dead pixel'}
+];
+function statCell(k,v,u,hot){
+  return '<div><div class="k">'+k+'</div><div class="v'+(hot?' hot':'')+'">'+v+
+    (u?'<i>'+u+'</i>':'')+'</div></div>';
+}
+function renderHome(){
+  $('#briVal').innerHTML=pct()+'<i>%</i>';
+  setKnob(pct()); paintFill();
+  paintPower();
+  var up=S.info.uptime||0, d=Math.floor(up/864e5), h=Math.floor(up/36e5)%24;
+  $('#upStr').textContent='up '+(d?d+' d '+h+' h':h+' h');
+
+  $('#statGrid').innerHTML=
+    statCell('Total pixels',totalPx().toLocaleString(),'')+
+    statCell('Full-white draw',totalA().toFixed(1),'A',totalA()>15)+
+    statCell('Outputs in use',S.outs.filter(function(o){return o.len>0}).length+' of '+S.outs.length,'')+
+    statCell('Protocol',S.net.proto||'-','')+
+    statCell('Universes',String(uniCount()),'')+
+    statCell('Start universe','U'+(S.net.uni||1),'');
+
+  $('#testChips').innerHTML=TESTS.map(function(t){
+    var live=S.test===t.k, cyc=!!t.cycle;
+    var fill=t.g||('rgb('+t.c.join(',')+')');
+    return '<button class="chip'+(live?' on':'')+(live&&cyc?' hue-cycle':'')+'" data-t="'+t.k+'"'+
+      ((live&&!cyc)?' style="background:'+fill+'"':'')+'>'+
+      '<i class="sw'+(cyc?' hue-cycle':'')+'"'+(cyc?'':' style="background:'+fill+'"')+'></i>'+
+      t.n+'</button>';
+  }).join('');
+  $$('#testChips .chip').forEach(function(b){ b.onclick=function(){toggleTest(b.dataset.t)} });
+
+  var w=totalA();
+  $('#testDraw').innerHTML='<span>White test pulls</span><b>'+w.toFixed(1)+' A</b>'+
+    '<span class="bar'+(w>15?' hot':'')+'"><i style="width:'+clamp(w/25*100,2,100)+'%"></i></span>'+
+    '<span>25 A supply</span>';
+
+  $('#homeOuts').innerHTML=S.outs.map(function(o,i){
+    return '<button class="row" data-o="'+i+'"><div class="rl"><b>Output '+pad2(i+1)+'</b>'+
+      '<small>'+o.len+' px &middot; '+esc(o.order)+' &middot; GPIO '+o.pin+'</small></div>'+
+      '<span class="rv">'+ampsOf(o).toFixed(1)+' A</span><span class="chev">&rsaquo;</span></button>';
+  }).join('');
+  $$('#homeOuts .row').forEach(function(b){ b.onclick=function(){go('out')} });
+
+  var f='Built on <a href="https://github.com/wled/WLED" target="_blank" rel="noopener">WLED</a> '+
+    esc(S.info.ver||'')+(MOCK?' &middot; demo data':'');
+  $('#foot').innerHTML=f; $('#foot2').innerHTML=f;
+}
+function pad2(n){return n<10?'0'+n:''+n}
+function paintPower(){
+  var b=$('#btnPwr'); if(!b) return;
+  b.textContent=S.on?'Turn off':'Turn on';
+  b.classList.toggle('lit',S.on);
+  b.classList.toggle('dark',!S.on);
+  $('#briCard').classList.toggle('dark',!S.on);
+}
+/* The bar is not decoration - it is the colour the run is showing, moving the way
+   the run is moving. Anything unrecognised still animates, because something is. */
+var FXNAME={0:'Solid',1:'Blink',2:'Breathe',3:'Wipe',8:'Colorloop',9:'Rainbow',
+  12:'Fade',23:'Strobe',28:'Chase',63:'Pride',67:'Colorwaves'};
+var FXBAR={0:'solid',1:'blink',2:'breathe',3:'sweep',8:'cycle',9:'spectrum',
+  12:'breathe',23:'blink',28:'chase',63:'spectrum',67:'spectrum'};
+function barKind(fx){ return FXBAR[fx]||(fx?'sweep':'solid') }
+function fxName(fx){ return (S.eff&&S.eff[fx])||FXNAME[fx]||('Effect '+fx) }
+function testOf(k){ var r=null; TESTS.forEach(function(t){ if(t.k===k) r=t }); return r }
+var fillSig='';
+function paintFill(){
+  var f=$('#briTex'); if(!f) return;
+  var t=S.test?testOf(S.test):null;
+  var fx=t?(t.fx||0):(S.fx||0);
+  var kind=barKind(fx);
+  var c=(t?t.c:S.col)||[255,170,80];
+  /* the label is cheap to rewrite; the animation is not, so name it first and leave */
+  var lbl=$('#briFx');
+  if(lbl) lbl.textContent = t ? t.n : (fx?fxName(fx):'Solid color');
+  var sig=kind+'|'+c.join(',');
+  if(sig===fillSig) return;                 /* nothing changed - do not restart it */
+  fillSig=sig;
+  f.className='tex fx-'+kind;
+  var lo='rgb('+c.map(function(v){return Math.round(v*0.42)}).join(',')+')';
+  var hi='rgb('+c.map(function(v){return Math.min(255,Math.round(v))}).join(',')+')';
+  var dim='rgb('+c.map(function(v){return Math.round(v*0.14)}).join(',')+')';
+  if(kind==='cycle') f.style.background='none';
+  else if(kind==='spectrum') f.style.background=SPECTRUM;
+  else if(kind==='chase')
+    f.style.background='linear-gradient(90deg,'+dim+' 0%,'+dim+' 62%,'+lo+' 76%,'+
+      hi+' 86%,'+lo+' 94%,'+dim+' 100%)';
+  else f.style.background='linear-gradient(90deg,'+lo+','+hi+' 50%,'+lo+')';
+}
+var lastTw=0;
+function setKnob(p){
+  var el=$('#briSlide'), w=el.clientWidth||300;
+  if(w!==lastTw){ lastTw=w; el.style.setProperty('--tw',w+'px') }
+  $('#briFil').style.width=p+'%';
+  $('#briKn').style.transform='translateX('+(w*p/100-13)+'px)';
+}
+/* drag anywhere on the track - no thumb hunting with cold hands */
+(function(){
+  var el=$('#briSlide'), drag=false;
+  function set(e){
+    var r=el.getBoundingClientRect();
+    var cx=e.touches?e.touches[0].clientX:e.clientX;
+    var p=clamp(Math.round((cx-r.left)/r.width*100),0,100);
+    S.bri=Math.round(p*255/100); S.on=p>0;
+    $('#briVal').innerHTML=p+'<i>%</i>'; setKnob(p); paintPower();
+    push('bri',function(){return api.setState({on:S.on,bri:S.bri})},120);
+  }
+  el.addEventListener('pointerdown',function(e){drag=true;set(e);e.preventDefault()});
+  el.addEventListener('pointermove',function(e){if(drag)set(e)});
+  window.addEventListener('pointerup',function(){drag=false});
+  window.addEventListener('pointercancel',function(){drag=false});
+})();
+$('#btnPwr').onclick=function(){
+  S.on=!S.on;
+  /* coming back from off with the dial at zero would look broken, so give it a level */
+  if(S.on&&S.bri<8) S.bri=128;
+  api.setState(S.on?{on:true,bri:S.bri}:{on:false}).then(flashSaved,function(){});
+  renderHome();
+};
+
+function toggleTest(k){
+  if(S.test===k) return stopTest();
+  var t=null; TESTS.forEach(function(x){if(x.k===k)t=x});
+  if(!S.pre) S.pre={on:S.on,bri:S.bri,fx:S.fx,col:S.col.slice()};
+  S.test=k; S.fx=t.fx||0;
+  $('#tbar').classList.add('on');
+  $('#tbarT').textContent=t.n+' test running';
+  $('#tbarS').textContent=t.hint||'all outputs, solid';
+  return api.setState({on:true,bri:S.bri,
+    seg:[{fx:t.fx||0,sx:t.sx==null?128:t.sx,ix:t.ix==null?128:t.ix,pal:0,
+      col:[t.c,[0,0,0],[0,0,0]]}]}).then(renderHome,renderHome);
+}
+function stopTest(){
+  S.test=null; $('#tbar').classList.remove('on');
+  var p=S.pre; S.pre=null;
+  var done=function(){renderHome()};
+  if(p){ S.fx=p.fx; S.col=p.col.slice();
+    return api.setState({on:p.on,bri:p.bri,seg:[{fx:p.fx,col:[p.col,[0,0,0],[0,0,0]]}]}).then(done,done) }
+  done();
+}
+$('#tbarStop').onclick=stopTest;
+$('#hId').onclick=function(){
+  var el=$('#hId'); el.style.color='var(--acc)';
+  var keep={on:S.on,bri:S.bri}, i=0;
+  (function blink(){
+    if(i++>=6){ api.setState(keep); el.style.color=''; return }
+    api.setState({on:true,bri:255,seg:[{fx:0,col:[[255,255,255]]}]});
+    setTimeout(function(){ api.setState({on:false});
+      setTimeout(blink,150) },150);
+  })();
+};
+
+/* --------------------------------------------------- adding / deleting outputs
+   WLED tops out at 10 LED buses and the board only has so many usable pins, so
+   the + is disabled for a reason rather than failing after the fact. */
+var MAXOUT=8;
+function freePin(){
+  for(var i=0;i<PINS.length;i++){
+    var p=PINS[i], taken=S.outs.some(function(o){return o.pin===p});
+    if(!taken) return p;
+  }
+  return null;
+}
+function addOutput(){
+  if(S.outs.length>=MAXOUT) return Promise.resolve();
+  var p=freePin(); if(p===null) return Promise.resolve();
+  var prev=S.outs[S.outs.length-1]||{len:100,type:TYPES[0].n,order:'GRB'};
+  /* inherit the previous run — on site the next output is usually the same part */
+  S.outs.push({len:prev.len,type:prev.type,order:prev.order,pin:p});
+  return api.writeBuses().then(function(){
+    flashSaved(); renderOuts(); renderHome();
+  },function(){});
+}
+function doRemove(i){
+  S.outs.splice(i,1);
+  return api.writeBuses().then(function(){
+    flashSaved(); renderOuts(); renderHome(); renderSetupIfOpen();
+  },function(){});
+}
+function removeOutput(i){
+  if(S.outs.length<=1) return;
+  var o=S.outs[i];
+  if(!o.len){ doRemove(i); return }
+  var below=S.outs.length-1-i;
+  sheet('Delete output '+pad2(i+1),
+    '<div class="note b"><i></i><span><b>'+o.len+' pixels are configured on this output</b>'+
+      'Deleting it frees GPIO '+o.pin+
+      (below>0?' and shifts the addresses of the '+below+' output'+(below===1?'':'s')+' below it.':'.')+
+      '</span></div>'+
+    '<div class="pwr" style="margin-top:18px">'+
+      '<button class="btn" id="dCancel">Keep it</button>'+
+      '<button class="btn bad" id="dGo">Delete output '+pad2(i+1)+'</button></div>',
+  function(){
+    $('#dCancel').onclick=closeSheet;
+    $('#dGo').onclick=function(){ closeSheet(); doRemove(i) };
+  });
+}
+function setOutCount(n){
+  n=clamp(n,1,MAXOUT);
+  if(n>S.outs.length){
+    var need=n-S.outs.length, chain=Promise.resolve();
+    for(var k=0;k<need;k++) chain=chain.then(addOutput);
+    return chain;
+  }
+  if(n<S.outs.length){
+    /* trimming from the end — only ask if the ones going away are configured */
+    var doomed=S.outs.slice(n), used=doomed.filter(function(o){return o.len>0});
+    var cut=function(){ S.outs.length=n;
+      return api.writeBuses().then(function(){
+        flashSaved(); renderOuts(); renderHome(); renderSetupIfOpen() },function(){}) };
+    if(!used.length) return cut();
+    sheet('Remove '+doomed.length+' output'+(doomed.length===1?'':'s'),
+      '<div class="note b"><i></i><span><b>'+used.length+' of them still have pixels</b>'+
+        used.map(function(o,i){return 'Output '+pad2(n+i+1)+' — '+o.len+' px'}).join('<br>')+
+        '</span></div>'+
+      '<div class="pwr" style="margin-top:18px">'+
+        '<button class="btn" id="cCancel">Cancel</button>'+
+        '<button class="btn bad" id="cGo">Remove them</button></div>',
+    function(){
+      $('#cCancel').onclick=function(){ closeSheet(); renderOuts() };
+      $('#cGo').onclick=function(){ closeSheet(); cut() };
+    });
+  }
+  return Promise.resolve();
+}
+function renderSetupIfOpen(){ if(S.view==='set') renderSetup() }
+
+/* ----------------------------------------------------------------- outputs */
+var A_WARM=6, A_OVER=7.5;
+function drawRow(o){
+  var t=typeOf(o.type), a=ampsOf(o);
+  var over=a>A_OVER, warm=!over&&a>A_WARM;
+  var uni=Math.max(1,Math.ceil(o.len*(t.w?4:3)/510));
+  return '<div class="drawline'+(over?' over':warm?' warm':'')+'">'+
+    '<span>Draws</span><b>'+a.toFixed(1)+' A</b>'+
+    '<span class="bar'+(over?' over':warm?' hot':'')+'">'+
+      '<i style="width:'+clamp(a/(A_OVER+.5)*100,2,100)+'%"></i></span>'+
+    '<span>'+(over?'over 7.5 A':uni+' universe'+(uni===1?'':'s'))+'</span>'+
+  '</div>';
+}
+function renderOuts(){
+  var n=S.outs.length, canAdd=n<MAXOUT&&freePin()!==null;
+  $('#outCount').innerHTML=
+    '<span class="lbl">Number of outputs</span>'+
+    '<div class="ministep">'+
+      '<button id="ocMinus"'+(n<=1?' disabled':'')+'>&minus;</button>'+
+      '<span class="n">'+n+'</span>'+
+      '<button id="ocPlus"'+(canAdd?'':' disabled')+'>+</button>'+
+    '</div>';
+  $('#ocMinus').onclick=function(){ setOutCount(S.outs.length-1) };
+  $('#ocPlus').onclick=function(){ setOutCount(S.outs.length+1) };
+
+  $('#outTotals').innerHTML=
+    statCell('Total pixels',totalPx().toLocaleString(),'')+
+    statCell('Full-white draw',totalA().toFixed(1),'A',totalA()>15);
+
+  $('#outList').innerHTML=S.outs.map(function(o,i){
+    var t=typeOf(o.type), list=t.w?ORDERS_W:ORDERS;
+    return '<div class="out">'+
+      '<div class="oh"><b>OUTPUT '+pad2(i+1)+'</b>'+
+        '<span class="gp">GPIO '+o.pin+'</span>'+
+        (S.outs.length>1?'<button class="del" data-del="'+i+'" aria-label="Delete output">'+
+          '<svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M8 7l.7 12h6.6L16 7"/></svg></button>':'')+
+      '</div>'+
+      '<div class="ob">'+
+        '<span class="lbl" style="display:block;margin-bottom:7px">Pixels</span>'+
+        '<div class="step">'+
+          '<button data-d="-1" data-i="'+i+'">&minus;</button>'+
+          '<label class="qty"><input type="text" inputmode="numeric" value="'+o.len+'" data-len="'+i+'"></label>'+
+          '<button data-d="1" data-i="'+i+'">+</button>'+
+        '</div>'+
+        '<div class="pair">'+
+          '<label class="fld"><span class="lbl">LED type</span><select class="sel" data-type="'+i+'">'+
+            TYPES.map(function(x){return '<option'+(x.n===o.type?' selected':'')+'>'+x.n+'</option>'}).join('')+
+          '</select></label>'+
+          '<label class="fld"><span class="lbl">Color order</span><select class="sel" data-order="'+i+'">'+
+            list.map(function(x){return '<option'+(x===o.order?' selected':'')+'>'+x+'</option>'}).join('')+
+          '</select></label>'+
+        '</div>'+
+        '<button class="detect" data-cal="'+i+'">'+
+          '<svg viewBox="0 0 24 24"><path d="M4 12h3M17 12h3M12 4v3M12 17v3"/>'+
+          '<circle cx="12" cy="12" r="3.2"/></svg>Detect color order'+
+          '<em>&nbsp;&middot; not sure?</em></button>'+
+        drawRow(o)+
+      '</div></div>';
+  }).join('')+
+    '<button class="addout" id="addOut"'+(canAdd?'':' disabled')+'>'+
+      (canAdd?'<span style="font-size:17px;font-weight:300;line-height:1">+</span><span>Add output</span>'
+        :'<span>'+(n>=MAXOUT?'Eight outputs is the maximum':'No free GPIO left')+'</span>')+'</button>';
+  $('#addOut').onclick=function(){ addOutput() };
+  $$('#outList [data-del]').forEach(function(b){
+    b.onclick=function(e){ e.stopPropagation(); removeOutput(+b.dataset.del) };
+  });
+
+  /* hold to repeat, accelerating - 300 px one tap at a time is cruel */
+  $$('#outList .step button').forEach(function(b){
+    var i=+b.dataset.i, d=+b.dataset.d, t1, t2, n=0;
+    function bump(){
+      var o=S.outs[i];
+      o.len=clamp(o.len+d*(n>18?10:1),0,2000); n++;
+      var f=$('[data-len="'+i+'"]'); if(f) f.value=o.len;
+      liveOut(i);
+      push('len'+i,function(){return api.setBus(i,{len:o.len})});
+    }
+    b.addEventListener('pointerdown',function(e){
+      e.preventDefault(); n=0; bump();
+      t1=setTimeout(function(){ t2=setInterval(bump,60) },380);
+    });
+    ['pointerup','pointerleave','pointercancel'].forEach(function(ev){
+      b.addEventListener(ev,function(){ clearTimeout(t1); clearInterval(t2) });
+    });
+  });
+  $$('#outList [data-len]').forEach(function(f){
+    f.onfocus=function(){f.select()};
+    f.onchange=function(){
+      var i=+f.dataset.len;
+      S.outs[i].len=clamp(parseInt(f.value.replace(/[^0-9]/g,''),10)||0,0,2000);
+      f.value=S.outs[i].len; renderOuts();
+      push('len'+i,function(){return api.setBus(i,{len:S.outs[i].len})},80);
+    };
+  });
+  $$('#outList [data-type]').forEach(function(f){
+    f.onchange=function(){
+      var i=+f.dataset.type, t=typeOf(f.value), o=S.outs[i];
+      o.type=f.value;
+      /* an RGBW part needs a 4-letter order - carry the hue order across */
+      var base=o.order.replace('W','');
+      o.order=t.w?base+'W':base;
+      renderOuts();
+      push('type'+i,function(){return api.setBus(i,{type:o.type,order:o.order})},80);
+    };
+  });
+  $$('#outList [data-order]').forEach(function(f){
+    f.onchange=function(){
+      var i=+f.dataset.order; S.outs[i].order=f.value;
+      push('ord'+i,function(){return api.setBus(i,{order:f.value})},80);
+    };
+  });
+  $$('#outList [data-cal]').forEach(function(b){
+    b.onclick=function(){ calibrate(+b.dataset.cal) };
+  });
+}
+/* refresh only the numbers while a stepper is held down */
+function liveOut(i){
+  var card=$$('#outList .out')[i]; if(!card) return;
+  card.querySelector('.drawline').outerHTML=drawRow(S.outs[i]);
+  $('#outTotals').innerHTML=
+    statCell('Total pixels',totalPx().toLocaleString(),'')+
+    statCell('Full-white draw',totalA().toFixed(1),'A',totalA()>15);
+}
+$('#btnGlobal').onclick=function(){sheetGlobal()};
+$('#btnPorts').onclick=function(){sheetPorts()};
+
+/* ------------------------------------------------------------------ sheets */
+var onClose=null;
+function sheet(title,html,mount){
+  $('#shT').textContent=title; $('#shB').innerHTML=html;
+  $('#scrim').classList.add('on'); $('#sheet').classList.add('on');
+  if(mount) mount();
+}
+function closeSheet(){
+  $('#scrim').classList.remove('on'); $('#sheet').classList.remove('on');
+  if(onClose){ var f=onClose; onClose=null; f() }
+}
+$('#shX').onclick=closeSheet; $('#scrim').onclick=closeSheet;
+
+function sheetGlobal(){
+  var t=typeOf(S.outs[0].type), list=t.w?ORDERS_W:ORDERS;
+  sheet('Apply to all outputs',
+    '<div class="note w"><i></i><span>This overwrites type and color order on all '+S.outs.length+
+      ' outputs. Pixel counts are left alone.</span></div>'+
+    '<div class="fldrow"><span class="lbl">LED type</span><select class="sel" id="gType">'+
+      TYPES.map(function(x){return '<option'+(x.n===S.outs[0].type?' selected':'')+'>'+x.n+'</option>'}).join('')+
+    '</select></div>'+
+    '<div class="fldrow"><span class="lbl">Color order</span><select class="sel" id="gOrder">'+
+      list.map(function(x){return '<option'+(x===S.outs[0].order?' selected':'')+'>'+x+'</option>'}).join('')+
+    '</select></div>'+
+    '<div class="pwr" style="margin-top:20px"><button class="btn" id="gCancel">Cancel</button>'+
+      '<button class="btn pri" id="gApply">Apply to all</button></div>'+
+    '<div class="fldrow"><button class="btn quiet" style="width:100%" id="gCal">'+
+      'Calibrate output 01 and copy to all</button></div>',
+  function(){
+    $('#gType').onchange=function(){
+      var t2=typeOf($('#gType').value), l2=t2.w?ORDERS_W:ORDERS;
+      $('#gOrder').innerHTML=l2.map(function(x){return '<option>'+x+'</option>'}).join('');
+    };
+    $('#gCancel').onclick=closeSheet;
+    $('#gApply').onclick=function(){
+      var ty=$('#gType').value, or=$('#gOrder').value;
+      S.outs.forEach(function(o){ o.type=ty; o.order=or });
+      api.setBus(0,{type:ty,order:or}).then(function(){
+        flashSaved(); closeSheet(); renderOuts(); renderHome();
+      },function(){});
+    };
+    $('#gCal').onclick=function(){ onClose=null; closeSheet(); calibrate(0,true) };
+  });
+}
+
+function sheetPorts(){
+  sheet('Ports (GPIO)',
+    '<div id="portNote"></div>'+
+    '<div id="portRows" style="margin-top:8px"></div>'+
+    '<div class="foot" style="text-align:left">GPIO 6&ndash;11 are wired to the flash chip and never appear here. '+
+      'Pins marked <b>strapping</b> work but can misbehave at boot if the strip pulls them.</div>',
+  function(){
+    function draw(){
+      /* the warning has to redraw with the rows, or it goes stale the moment you fix it */
+      var clash=S.outs.some(function(o){
+        return S.outs.filter(function(x){return x.pin===o.pin}).length>1 });
+      $('#portNote').innerHTML=clash
+        ? '<div class="note b"><i></i><span><b>Two outputs share a pin</b>Only one will drive pixels. '+
+          'Give each output its own GPIO.</span></div>'
+        : '<div class="note o"><i></i><span>Each output has its own pin. Nothing to fix.</span></div>';
+      $('#portRows').innerHTML=S.outs.map(function(o,i){
+        var dup=S.outs.filter(function(x){return x.pin===o.pin}).length>1;
+        return '<div class="row" style="padding-left:0"><div class="rl"><b>Output '+pad2(i+1)+'</b>'+
+          '<small>'+o.len+' px'+(RISKY[o.pin]?' &middot; '+RISKY[o.pin]:'')+'</small></div>'+
+          '<select class="sel" data-pin="'+i+'" style="width:118px'+
+            (dup?';background:rgba(255,61,135,.16)':'')+'">'+
+            PINS.map(function(p){return '<option value="'+p+'"'+(p===o.pin?' selected':'')+'>GPIO '+p+'</option>'}).join('')+
+          '</select></div>';
+      }).join('');
+      $$('#portRows [data-pin]').forEach(function(f){
+        f.onchange=function(){
+          var i=+f.dataset.pin; S.outs[i].pin=+f.value;
+          api.setBus(i,{pin:+f.value}).then(function(){
+            flashSaved(); draw(); renderHome(); renderOuts();
+          },function(){});
+        };
+      });
+    }
+    draw();
+  });
+}
+
+/* ----------------------------------------------------------- calibration
+   Drive one wire position at a time with the order forced to identity, ask what
+   color actually lit, and read the strip's real order straight off the answers. */
+var CAL_HEX={R:'#ff3355',G:'#35ff7d',B:'#3b8cff',W:'#ffffff'};
+var CAL_NAME={R:'Red',G:'Green',B:'Blue',W:'White'};
+function calibrate(idx,toAll){
+  var o=S.outs[idx], isW=!!typeOf(o.type).w;
+  var answers=[], total=isW?3:2;
+  var prev={order:o.order,on:S.on,bri:S.bri};
+  onClose=function(){
+    api.setBus(idx,{order:prev.order}).then(function(){
+      return api.setState({on:prev.on,bri:prev.bri,seg:[{fx:0}]});
+    },function(){}).then(function(){ renderOuts() },function(){});
+  };
+
+  function light(step){
+    var c=[0,0,0]; c[step]=255;
+    return api.setBus(idx,{order:isW?'RGBW':'RGB'}).then(function(){
+      return api.setState({on:true,bri:255,seg:[{fx:0,col:[c,[0,0,0],[0,0,0]]}]});
+    });
+  }
+  function ask(step){
+    var remaining=['R','G','B','W'].filter(function(k){
+      return answers.indexOf(k)<0 && (k!=='W'||isW) });
+    sheet('Calibrate output '+pad2(idx+1),
+      '<div class="cal">'+
+        '<div class="swatch" style="background:#c9c9c9">look at the strip</div>'+
+        '<div class="steps">'+Array.apply(null,{length:total}).map(function(_,i){
+          return '<i class="'+(i<=step?'on':'')+'"></i>' }).join('')+'</div>'+
+        '<p><b>What color is the strip showing?</b></p>'+
+        '<p class="dim" style="font-size:13px">Step '+(step+1)+' of '+total+
+          '. Tap the color you can actually see.</p>'+
+        '<div class="calopts">'+remaining.map(function(k){
+          return '<button class="calopt" data-a="'+k+'"><i style="background:'+CAL_HEX[k]+
+            '"></i>'+CAL_NAME[k]+'</button>' }).join('')+'</div>'+
+        '<div class="fldrow"><button class="btn quiet" style="width:100%" id="calNo">'+
+          'Nothing lit up</button></div>'+
+      '</div>',
+    function(){
+      $$('#shB .calopt').forEach(function(b){
+        b.onclick=function(){ answer(step,b.dataset.a) } });
+      $('#calNo').onclick=function(){
+        sheet('Nothing lit up',
+          '<div class="note w"><i></i><span><b>Check three things</b>Power at the far end of the run, '+
+          'data on GPIO '+o.pin+', and that the pixel count is not 0.</span></div>'+
+          '<div class="fldrow"><button class="btn pri" style="width:100%" id="reTry">'+
+          'Try again</button></div>',
+        function(){ $('#reTry').onclick=function(){ light(step); ask(step) } });
+      };
+    });
+  }
+  function answer(step,k){
+    answers[step]=k;
+    if(step+1<total){ light(step+1); ask(step+1); return }
+    var all=isW?['R','G','B','W']:['R','G','B'];
+    var order=answers.concat(all.filter(function(x){return answers.indexOf(x)<0})).join('');
+    onClose=null;
+    api.setBus(idx,{order:order}).then(function(){
+      if(toAll) S.outs.forEach(function(x){
+        if(!!typeOf(x.type).w===isW) x.order=order });
+      return api.setState({on:true,bri:255,seg:[{fx:0,col:[[255,255,255],[0,0,0],[0,0,0]]}]});
+    }).then(function(){
+      sheet('Calibration done',
+        '<div class="cal"><div class="swatch" style="background:#f2efe6">should be white now</div>'+
+        '<p><b>Color order is '+order+'</b></p>'+
+        '<p class="dim" style="font-size:13.5px">The strip is at full white. If it looks white you are done'+
+          (toAll?' &mdash; and every other output of this type now matches':'')+'.</p>'+
+        '<div class="pwr" style="margin-top:18px"><button class="btn" id="calAgain">Not white &mdash; redo</button>'+
+        '<button class="btn pri" id="calOk">Done</button></div></div>',
+      function(){
+        $('#calAgain').onclick=function(){ calibrate(idx,toAll) };
+        $('#calOk').onclick=function(){
+          api.setState({on:prev.on,bri:prev.bri,seg:[{fx:0}]}).then(function(){
+            flashSaved(); closeSheet(); renderOuts(); renderHome();
+          },function(){});
+        };
+      });
+    },function(){});
+  }
+  light(0); ask(0);
+}
+
+/* ------------------------------------------------------------------- setup */
+function bars(r){ var n=r>-60?4:r>-70?3:r>-80?2:1; return '▂▄▆█'.slice(0,n) }
+function renderSetup(){
+  var ap=S.info.ap;
+  $('#setNet').innerHTML=
+    '<button class="row" id="rWifi"><div class="rl"><b>'+(ap?'Access point':'Wi-Fi')+'</b>'+
+      '<small>'+(ap?'Broadcasting '+esc(S.ap.ssid):esc(S.info.ssid||'Not joined'))+'</small></div>'+
+      '<span class="rv">'+(ap?'Not joined':bars(S.info.rssi)+' '+(S.info.rssi||'')+' dBm')+
+      '</span><span class="chev">&rsaquo;</span></button>'+
+    '<button class="row" id="rAp"><div class="rl"><b>Access point</b>'+
+      '<small>Fallback when there is no Wi-Fi</small></div><span class="rv">'+esc(S.ap.ssid)+
+      '</span><span class="chev">&rsaquo;</span></button>'+
+    '<div class="row"><div class="rl"><b>IP address</b><small>Use this to reach the node</small></div>'+
+      '<span class="rv">'+esc(S.info.ip||'-')+'</span></div>';
+  $('#setShow').innerHTML=
+    '<button class="row" id="rProto"><div class="rl"><b>Connector</b>'+
+      '<small>How Loomx Ctrl talks to this node</small></div>'+
+      '<span class="rv">'+esc(S.net.proto)+' &middot; U'+S.net.uni+'</span><span class="chev">&rsaquo;</span></button>';
+  $('#setHw').innerHTML=
+    '<button class="row" id="rPorts"><div class="rl"><b>Ports (GPIO)</b>'+
+      '<small>Which pin drives each output</small></div><span class="rv">'+
+      S.outs.map(function(o){return o.pin}).join(' &middot; ')+'</span><span class="chev">&rsaquo;</span></button>'+
+    '<button class="row" id="rGlobal"><div class="rl"><b>LED type and color order</b>'+
+      '<small>Apply one setting to every output</small></div><span class="rv">'+esc(S.outs[0].order)+
+      '</span><span class="chev">&rsaquo;</span></button>';
+  $('#setNode').innerHTML=
+    '<button class="row" id="rName"><div class="rl"><b>Node name</b>'+
+      '<small>Shown in Loomx Ctrl</small></div><span class="rv">'+esc(S.info.name)+
+      '</span><span class="chev">&rsaquo;</span></button>'+
+    '<button class="row" id="rFw"><div class="rl"><b>Update firmware</b><small>'+
+      esc(S.info.arch||'esp32')+' &middot; currently WLED '+esc(S.info.ver||'')+'</small></div>'+
+      '<span class="chev">&rsaquo;</span></button>'+
+    '<button class="row" id="rBackup"><div class="rl"><b>Export configuration</b>'+
+      '<small>Download node settings and presets</small></div><span class="chev">&rsaquo;</span></button>'+
+    '<button class="row" id="rAdv"><div class="rl"><b>Everything else</b>'+
+      '<small>Opens the full WLED settings</small></div><span class="chev">&rsaquo;</span></button>';
+  $('#rWifi').onclick=sheetWifi; $('#rAp').onclick=sheetAp;
+  $('#rProto').onclick=sheetProto; $('#rPorts').onclick=sheetPorts;
+  $('#rGlobal').onclick=sheetGlobal; $('#rName').onclick=sheetName;
+  $('#rFw').onclick=sheetFirmware; $('#rBackup').onclick=sheetBackup;
+  $('#rAdv').onclick=function(){
+    if(MOCK) sheet('Full WLED settings',
+      '<div class="note w"><i></i><span>On a real node this opens <b>/settings</b> &mdash; the stock WLED pages, '+
+      'untouched. Everything needed day to day is on these three screens.</span></div>');
+    else location.href='/settings';
+  };
+}
+
+function sheetWifi(){
+  sheet('Wi-Fi','<div id="wifiBody"><div style="display:flex;align-items:center;gap:10px;'+
+    'padding:22px 4px;color:var(--t3);font-size:13.5px"><span class="spin"></span>'+
+    'Looking for networks...</div></div>',
+  function(){
+    api.scan().then(function(list){
+      var body=$('#wifiBody'); if(!body) return;
+      body.innerHTML=
+        ((S.info.ssid&&!S.info.ap)?'<div class="note o"><i></i><span>Joined to <b>'+esc(S.info.ssid)+
+          '</b> at '+esc(S.info.ip)+'</span></div>':'')+
+        '<div style="margin-top:6px">'+list.slice().sort(function(a,b){return b.rssi-a.rssi})
+        .map(function(n){
+          var lv=n.rssi>-60?4:n.rssi>-70?3:n.rssi>-80?2:1;
+          return '<button class="wifi" data-s="'+esc(n.ssid)+'" data-l="'+(n.lock?1:0)+'">'+
+            '<b>'+esc(n.ssid)+'</b>'+
+            (n.lock?'<svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/>'+
+              '<path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>':'')+
+            '<span class="sig">'+[1,2,3,4].map(function(k){
+              return '<i class="'+(lv>=k?'on':'')+'" style="height:'+(4+k*2.5)+'px"></i>' }).join('')+
+            '</span></button>';
+        }).join('')+'</div>'+
+        '<div class="fldrow"><button class="btn quiet" style="width:100%" id="wRescan">Scan again</button></div>';
+      $$('#wifiBody .wifi').forEach(function(b){
+        b.onclick=function(){ wifiJoin(b.dataset.s,b.dataset.l==='1') } });
+      $('#wRescan').onclick=sheetWifi;
+    });
+  });
+}
+function wifiJoin(ssid,lock){
+  sheet(ssid,
+    (lock?'<div class="fldrow"><span class="lbl">Password</span>'+
+      '<input class="inp" id="wPass" type="password" placeholder="Network password" autocomplete="off">'+
+      '<button class="wifi" style="padding:12px 2px;margin-top:2px" id="wShowWrap">'+
+        '<b style="font-size:13.5px;color:var(--t2)">Show password</b>'+
+        '<span class="seg" style="width:74px;padding:2px"><span id="wShow" style="flex:1;height:26px;'+
+        'border-radius:6px;display:block;background:var(--s3)"></span></span></button></div>'
+      :'<div class="note w"><i></i><span>This network is open. Anything on it can reach the node.</span></div>')+
+    '<div class="pwr" style="margin-top:18px"><button class="btn" id="wBack">Back</button>'+
+    '<button class="btn pri" id="wGo">Join</button></div>',
+  function(){
+    var p=$('#wPass'), shown=false;
+    if(p){
+      $('#wShowWrap').onclick=function(e){
+        e.preventDefault(); shown=!shown; p.type=shown?'text':'password';
+        $('#wShow').style.background=shown?'var(--acc)':'var(--s3)';
+      };
+    }
+    $('#wBack').onclick=sheetWifi;
+    $('#wGo').onclick=function(){
+      sheet('Joining '+ssid,'<div class="cal" style="padding:10px 0 6px">'+
+        '<div style="display:flex;align-items:center;gap:10px;justify-content:center;color:var(--t2);'+
+        'font-size:14px;padding:20px 0"><span class="spin"></span>Joining and reading the network...</div></div>');
+      api.join(ssid,p?p.value:'').then(function(){
+        S.info.ssid=ssid; S.info.ap=false;
+        var g=MOCK?{gw:'192.168.1.1',mask:'255.255.255.0',ip:'192.168.1.42'}
+                  :{gw:S.net.gw||'-',mask:S.net.mask||'-',ip:S.info.ip};
+        sheet('Joined',
+          '<div class="note o"><i></i><span><b>On '+esc(ssid)+'</b>Gateway and subnet were picked up '+
+            'automatically.</span></div>'+
+          '<div class="rows" style="margin-top:10px">'+
+            '<div class="row"><div class="rl"><b>IP address</b></div><span class="rv">'+esc(g.ip)+'</span></div>'+
+            '<div class="row"><div class="rl"><b>Gateway</b></div><span class="rv">'+esc(g.gw)+'</span></div>'+
+            '<div class="row"><div class="rl"><b>Subnet</b></div><span class="rv">'+esc(g.mask)+'</span></div>'+
+          '</div>'+
+          '<div class="fldrow"><span class="lbl">Keep this address permanently?</span>'+
+            '<div class="note w" style="margin:2px 0 10px"><i></i><span>A fixed address means Loomx Ctrl always '+
+            'finds the node. Leave it automatic and the router may hand it a different one after a power cut.</span></div>'+
+            '<div class="pwr"><button class="btn" id="ipDyn">Leave it automatic</button>'+
+            '<button class="btn pri" id="ipFix">Make it static</button></div></div>',
+        function(){
+          function done(st){
+            S.net.dhcp=!st; S.info.ip=g.ip;
+            var fin=function(){ flashSaved(); closeSheet(); renderSetup(); renderHome() };
+            if(st) api.setNet({dhcp:false,gw:g.gw,mask:g.mask}).then(fin,fin); else fin();
+          }
+          $('#ipDyn').onclick=function(){done(false)};
+          $('#ipFix').onclick=function(){done(true)};
+        });
+      });
+    };
+  });
+}
+function sheetAp(){
+  sheet('Access point',
+    '<div class="note w"><i></i><span>When there is no Wi-Fi the node broadcasts this network so you can '+
+      'still reach it from a phone.</span></div>'+
+    '<div class="fldrow"><span class="lbl">Network name</span><input class="inp" id="apS" value="'+esc(S.ap.ssid)+'"></div>'+
+    '<div class="fldrow"><span class="lbl">Password</span><input class="inp" id="apP" value="'+esc(S.ap.pass)+'"></div>'+
+    '<div class="foot" style="text-align:left">Ships as <b>Loomx Node</b> / <b>loomx1234</b>. '+
+      'Change it on commercial installs.</div>'+
+    '<div class="pwr" style="margin-top:6px"><button class="btn" id="apR">Reset to default</button>'+
+    '<button class="btn pri" id="apOk">Save</button></div>',
+  function(){
+    $('#apR').onclick=function(){ $('#apS').value='Loomx Node'; $('#apP').value='loomx1234' };
+    $('#apOk').onclick=function(){
+      api.setAp({ssid:$('#apS').value.trim()||'Loomx Node',pass:$('#apP').value||'loomx1234'})
+        .then(function(){ flashSaved(); closeSheet(); renderSetup() },function(){});
+    };
+  });
+}
+function sheetProto(){
+  var u=uniCount();
+  sheet('Connector',
+    '<div class="fldrow"><span class="lbl">Protocol</span><div class="seg" id="pSeg">'+
+      '<button data-p="sACN" class="'+(S.net.proto==='sACN'?'on':'')+'">sACN (E1.31)</button>'+
+      '<button data-p="Art-Net" class="'+(S.net.proto==='Art-Net'?'on':'')+'">Art-Net</button>'+
+    '</div></div>'+
+    '<div class="pair" style="margin-top:14px">'+
+      '<label class="fld"><span class="lbl">Start universe</span>'+
+        '<input class="inp" id="pUni" inputmode="numeric" value="'+S.net.uni+'" style="margin-top:0"></label>'+
+      '<label class="fld"><span class="lbl">Start address</span>'+
+        '<input class="inp" id="pAddr" inputmode="numeric" value="'+S.net.addr+'" style="margin-top:0"></label>'+
+    '</div>'+
+    '<div class="fldrow"><span class="lbl">Signal timeout</span>'+
+      '<input class="inp" id="pTo" inputmode="numeric" value="'+S.net.timeout+'" style="margin-top:0">'+
+      '<div class="foot" style="text-align:left;padding:10px 0 0">Milliseconds of silence before the node falls '+
+      'back to its own look. Keep it above one second or a busy network will make the lights stutter.</div></div>'+
+    '<div class="note w" style="margin-top:6px"><i></i><span>This node needs <b>'+u+'</b> universe'+
+      (u===1?'':'s')+' for '+totalPx().toLocaleString()+' pixels, so it occupies U'+S.net.uni+'&ndash;U'+
+      (S.net.uni+u-1)+'. Start the next node above that.</span></div>'+
+    '<div class="pwr" style="margin-top:16px"><button class="btn" id="pCancel">Cancel</button>'+
+    '<button class="btn pri" id="pSave">Save</button></div>',
+  function(){
+    $$('#pSeg button').forEach(function(b){
+      b.onclick=function(){
+        $$('#pSeg button').forEach(function(x){ x.classList.toggle('on',x===b) });
+        S.net.proto=b.dataset.p;
+      };
+    });
+    $('#pCancel').onclick=closeSheet;
+    $('#pSave').onclick=function(){
+      api.setNet({proto:S.net.proto,
+        uni:clamp(parseInt($('#pUni').value,10)||1,1,63999),
+        addr:clamp(parseInt($('#pAddr').value,10)||1,1,512),
+        timeout:clamp(parseInt($('#pTo').value,10)||2500,0,60000)})
+        .then(function(){ flashSaved(); closeSheet(); renderSetup(); renderHome() },function(){});
+    };
+  });
+}
+function sheetName(){
+  sheet('Node name',
+    '<div class="fldrow"><input class="inp" id="nmV" value="'+esc(S.info.name)+'" style="margin-top:0"></div>'+
+    '<div class="foot" style="text-align:left">Name it after where it is, not what it is. '+
+      '&ldquo;Front of house&rdquo; beats &ldquo;Node 1&rdquo; when you are back in two years.</div>'+
+    '<div class="pwr"><button class="btn" id="nmC">Cancel</button>'+
+    '<button class="btn pri" id="nmS">Save</button></div>',
+  function(){
+    $('#nmC').onclick=closeSheet;
+    $('#nmS').onclick=function(){
+      api.setName($('#nmV').value.trim()||'Loomx Node')
+        .then(function(){ flashSaved(); closeSheet(); paint() },function(){});
+    };
+  });
+}
+
+function sheetFirmware(){
+  sheet('Update firmware',
+    '<div class="note w"><i></i><span><b>Use a Loomx firmware build for this exact board</b>'+
+      'Installing a stock WLED build replaces the Loomx interface. The node reboots after a successful update.</span></div>'+
+    '<form id="fwForm" method="POST" action="/update" enctype="multipart/form-data">'+
+      '<div class="fldrow"><span class="lbl">Firmware file</span>'+
+        '<input class="inp" id="fwFile" name="update" type="file" accept=".bin,.bin.gz" required></div>'+
+      '<div class="foot" style="text-align:left;padding:10px 0 0">Current device: '+
+        esc(S.info.arch||'esp32')+' &middot; WLED '+esc(S.info.ver||'unknown')+'. '+
+        'Configuration is normally retained, but export it first.</div>'+
+      '<div class="pwr" style="margin-top:16px"><button class="btn" id="fwCancel" type="button">Cancel</button>'+
+        '<button class="btn pri" id="fwGo" type="button">Install and reboot</button></div>'+
+    '</form>',
+  function(){
+    $('#fwCancel').onclick=closeSheet;
+    $('#fwGo').onclick=function(){
+      var file=$('#fwFile').files[0];
+      if(!file){
+        $('#fwFile').click();
+        return;
+      }
+      var form=$('#fwForm');
+      sheet('Install firmware?',
+        '<div class="note w"><i></i><span><b>'+esc(file.name)+'</b>'+
+          'Do not unplug the node while it is writing firmware.</span></div>'+
+        '<div class="pwr" style="margin-top:18px"><button class="btn" id="fwBack">Go back</button>'+
+          '<button class="btn pri" id="fwConfirm">Install now</button></div>',
+      function(){
+        $('#fwBack').onclick=sheetFirmware;
+        $('#fwConfirm').onclick=function(){
+          if(MOCK){
+            sheet('Demo mode','<div class="note w"><i></i><span>Firmware upload is available only when this page is served by a node.</span></div>');
+            return;
+          }
+          if(!form){
+            closeSheet();
+            return;
+          }
+          form.submit();
+        };
+      });
+    };
+  });
+}
+
+function sheetBackup(){
+  var safeName=(S.info.name||'loomx-node').toLowerCase()
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'loomx-node';
+  sheet('Export configuration',
+    '<div class="note o"><i></i><span><b>Keep both files together</b>'+
+      'Configuration contains hardware and network settings. Presets contains saved looks and playlists. '+
+      'WLED intentionally excludes passwords from backups.</span></div>'+
+    '<div class="fldrow"><a class="btn pri" style="width:100%" href="/cfg.json" download="'+
+      esc(safeName)+'-config.json">Download configuration</a></div>'+
+    '<div class="fldrow"><a class="btn quiet" style="width:100%" href="/presets.json" download="'+
+      esc(safeName)+'-presets.json">Download presets</a></div>'+
+    '<div class="foot" style="text-align:left">Export before firmware updates or hardware changes.</div>');
+}
+
+/* ---------------------------------------------------------- routing + boot */
+function go(v){
+  S.view=v;
+  ['home','out','set'].forEach(function(k){ $('#v-'+k).classList.toggle('on',k===v) });
+  $$('nav button').forEach(function(b){ b.classList.toggle('on',b.dataset.v===v) });
+  window.scrollTo(0,0); paint();
+}
+$$('nav button').forEach(function(b){ b.onclick=function(){ go(b.dataset.v) } });
+function paint(){
+  $('#hName').textContent=S.info.name||'Loomx Node';
+  var ap=S.info.ap;
+  $('#hDot').className='dot'+(ap?' ap':(S.info.ssid?'':' off'));
+  $('#hNet').textContent=ap?('Access point · '+S.ap.ssid)
+    :(S.info.ssid?(S.info.ssid+' · '+(S.info.ip||'')):'No network');
+  if(S.view==='home') renderHome();
+  if(S.view==='out') renderOuts();
+  if(S.view==='set') renderSetup();
+}
+window.addEventListener('resize',function(){ if(S.view==='home') setKnob(pct()) });
+
+api.load().then(function(){
+  paint();
+  /* stay honest if someone drives the node from Loomx Ctrl while this is open */
+  setInterval(function(){
+    if(MOCK||S.test||$('#sheet').classList.contains('on')) return;
+    req('/json/state').then(function(st){
+      var sg=st.seg&&st.seg[0], col=sg&&sg.col&&sg.col[0];
+      var moved=st.bri!=null&&Math.abs(st.bri-S.bri)>2;
+      var recol=col&&col.join()!==S.col.join();
+      var refx=sg&&sg.fx!=null&&sg.fx!==S.fx;
+      if(moved||recol||refx||(st.on!=null&&!!st.on!==S.on)){
+        if(st.bri!=null) S.bri=st.bri;
+        S.on=!!st.on; if(col) S.col=col.slice(); if(refx) S.fx=sg.fx;
+        if(S.view==='home') renderHome();
+      }
+    },function(){});
+  },4000);
+});
+window.LOOMX={S:S,api:api,go:go,calibrate:calibrate,
+  addOutput:addOutput,removeOutput:removeOutput,setOutCount:setOutCount,freePin:freePin,MAXOUT:MAXOUT,
+  sheets:{
+  global:sheetGlobal,ports:sheetPorts,wifi:sheetWifi,proto:sheetProto,ap:sheetAp,name:sheetName,
+  firmware:sheetFirmware,backup:sheetBackup},
+  closeSheet:function(){closeSheet()},toggleTest:toggleTest,uniCount:uniCount,
+  totalPx:totalPx,totalA:totalA,typeOf:typeOf};
+})();
+</script>
+</body>
+</html>
