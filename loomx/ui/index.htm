@@ -1254,7 +1254,7 @@ function sheetName(){
 
 function sheetFirmware(){
   sheet('Update firmware',
-    '<div class="note w"><i></i><span><b>Use a Loomx firmware build for this exact board</b>'+
+    '<div class="note w"><i></i><span><b>Use a Loomx firmware build for this exact board</b> '+
       'Installing a stock WLED build replaces the Loomx interface. The node reboots after a successful update.</span></div>'+
     '<form id="fwForm" method="POST" action="/update" enctype="multipart/form-data">'+
       '<div class="fldrow"><span class="lbl">Firmware file</span>'+
@@ -1301,7 +1301,7 @@ function sheetBackup(){
   var safeName=(S.info.name||'loomx-node').toLowerCase()
     .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'loomx-node';
   sheet('Export configuration',
-    '<div class="note o"><i></i><span><b>Keep both files together</b>'+
+    '<div class="note o"><i></i><span><b>Keep both files together</b> '+
       'Configuration contains hardware and network settings. Presets contains saved looks and playlists. '+
       'WLED intentionally excludes passwords from backups.</span></div>'+
     '<div class="fldrow"><a class="btn pri" style="width:100%" href="/cfg.json" download="'+
