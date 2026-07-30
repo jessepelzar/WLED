@@ -1,0 +1,86 @@
+name: Update Loomx from stable WLED releases
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 9 * * *' # Check daily at 09:17 UTC.
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: loomx-upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Merge and validate the newest stable release
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out the Loomx branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: loomx
+
+      - name: Configure merge author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge the newest stable WLED tag
+        id: upstream
+        continue-on-error: true
+        run: loomx/tools/sync-upstream.sh
+
+      - name: Install Node.js
+        if: steps.upstream.outcome == 'success' && steps.upstream.outputs.changed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          cache: npm
+          node-version: '20'
+
+      - name: Validate the merged release and Loomx UI
+        id: validation
+        if: steps.upstream.outcome == 'success' && steps.upstream.outputs.changed == 'true'
+        continue-on-error: true
+        run: |
+          npm ci
+          node loomx/tools/build-ui.mjs
+          npm test
+
+      - name: Push the validated update
+        if: >-
+          steps.upstream.outcome == 'success' &&
+          steps.upstream.outputs.changed == 'true' &&
+          steps.validation.outcome == 'success'
+        run: git push origin HEAD:loomx
+
+      - name: Open an issue when automatic update needs review
+        if: >-
+          steps.upstream.outcome == 'failure' ||
+          steps.validation.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: Loomx automatic WLED update needs review
+        run: |
+          existing_issue="$(
+            gh issue list \
+              --state open \
+              --search "$ISSUE_TITLE in:title" \
+              --json number \
+              --jq '.[0].number // empty'
+          )"
+          if [[ -z "$existing_issue" ]]; then
+            gh issue create \
+              --title "$ISSUE_TITLE" \
+              --body "The scheduled stable-release merge conflicted or failed validation. The \`loomx\` branch was not updated. See workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          fi
+
+      - name: Fail after reporting an update problem
+        if: >-
+          steps.upstream.outcome == 'failure' ||
+          steps.validation.outcome == 'failure'
+        run: exit 1
