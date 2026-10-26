@@ -28,6 +28,7 @@ wled-update.sh
 /.env.wled-deploy
 /*.command
 /.codex/
+/supabase/
 
 /wled00/extLibs
 /wled00/LittleFS

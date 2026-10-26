@@ -1,6 +1,7 @@
 Import('env')
 import subprocess
 import json
+import pathlib
 import re
 
 def get_github_repo():
@@ -76,6 +77,28 @@ def get_github_repo():
         # Any other unexpected error
         return None
 
+def get_git_commit():
+    """Return the exact commit embedded in this firmware build."""
+    try:
+        result = subprocess.run(
+            ['git', 'rev-parse', 'HEAD'],
+            capture_output=True, text=True, check=True
+        )
+        commit = result.stdout.strip().lower()
+        return commit if re.fullmatch(r'[0-9a-f]{40}', commit) else None
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return None
+
+def get_loomx_version():
+    """Read the user-facing Loomx firmware release number."""
+    try:
+        version = (
+            pathlib.Path(env["PROJECT_DIR"]) / "loomx" / "VERSION"
+        ).read_text(encoding="utf-8").strip()
+        return version if re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version) else None
+    except (OSError, UnicodeError):
+        return None
+
 # WLED version is managed by package.json; this is picked up in several places
 # - It's integrated in to the UI code
 # - Here, for wled_metadata.cpp
@@ -113,4 +136,23 @@ def add_wled_metadata_flags(env, node):
 env.AddBuildMiddleware(
     add_wled_metadata_flags,
     "*/wled_metadata.cpp"
+)
+
+def add_loomx_info_flags(env, node):
+    """Expose the fork commit through /json/info without changing OTA identity."""
+    cdefs = env["CPPDEFINES"].copy()
+    commit = get_git_commit()
+    if commit and not has_def(cdefs, "LOOMX_GIT_COMMIT"):
+        cdefs.append(("LOOMX_GIT_COMMIT", f"\\\"{commit}\\\""))
+    version = get_loomx_version()
+    if version and not has_def(cdefs, "LOOMX_VERSION"):
+        cdefs.append(("LOOMX_VERSION", f"\\\"{version}\\\""))
+    return env.Object(
+        node,
+        CPPDEFINES=cdefs
+    )
+
+env.AddBuildMiddleware(
+    add_loomx_info_flags,
+    "*/json.cpp"
 )

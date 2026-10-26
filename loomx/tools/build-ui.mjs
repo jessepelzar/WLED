@@ -17,10 +17,17 @@ const repositoryRoot = resolve(scriptDirectory, "../..");
 const overlayRoot = join(repositoryRoot, "loomx/ui");
 const nodeModules = join(repositoryRoot, "node_modules");
 const temporaryRoot = mkdtempSync(join(tmpdir(), "loomx-wled-ui-"));
+const duplicateCopyPattern = / \d+(?=(?:\.[^./]+)?$)/;
 
 function copyOverlay(source, destination) {
 	for (const entry of readdirSync(source, { withFileTypes: true })) {
-		if (entry.name === ".gitkeep") continue;
+		// Finder and cloud-sync conflict copies are not build inputs. Some are
+		// dataless iCloud placeholders, and reading them can block indefinitely.
+		if (
+			entry.name === ".gitkeep" ||
+			entry.name === ".DS_Store" ||
+			duplicateCopyPattern.test(entry.name)
+		) continue;
 
 		const sourcePath = join(source, entry.name);
 		const destinationPath = join(destination, entry.name);
@@ -41,12 +48,8 @@ try {
 
 	mkdirSync(join(temporaryRoot, "wled00"), { recursive: true });
 	cpSync(join(repositoryRoot, "package.json"), join(temporaryRoot, "package.json"));
-	cpSync(join(repositoryRoot, "tools"), join(temporaryRoot, "tools"), {
-		recursive: true
-	});
-	cpSync(join(repositoryRoot, "wled00/data"), join(temporaryRoot, "wled00/data"), {
-		recursive: true
-	});
+	copyOverlay(join(repositoryRoot, "tools"), join(temporaryRoot, "tools"));
+	copyOverlay(join(repositoryRoot, "wled00/data"), join(temporaryRoot, "wled00/data"));
 	copyOverlay(overlayRoot, join(temporaryRoot, "wled00/data"));
 
 	const build = spawnSync(process.execPath, ["tools/cdata.js", "--force"], {
