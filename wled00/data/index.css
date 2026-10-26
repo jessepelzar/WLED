@@ -128,6 +128,29 @@ button {
 	z-index: 1;
 }
 
+.loomx-brandbar {
+	height: 34px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	border-bottom: 1px solid rgba(154, 255, 13, .2);
+	background: rgba(17, 17, 17, .72);
+}
+
+.loomx-brandbar img {
+	display: block;
+	width: 135px;
+	height: 20px;
+}
+
+.loomx-brandbar span {
+	color: #9aff0d;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: .22em;
+}
+
 .icons {
 	font-family: 'WIcons';
 	font-style: normal;
@@ -409,6 +432,13 @@ button {
 	opacity: .95;
 	transition: .7s;
 	pointer-events: none;
+}
+
+.loomx-load-icon {
+	width: 72px;
+	height: 72px;
+	margin-right: 18px;
+	border-radius: 16px;
 }
 
 .staytop, .staybot {
@@ -1543,6 +1573,13 @@ dialog {
 }
 
 @media all and (max-width: 335px) {
+	.loomx-brandbar {
+		height: 30px;
+	}
+	.loomx-brandbar img {
+		width: 122px;
+		height: auto;
+	}
 	.sliderbubble {
 		display: none;
   	}

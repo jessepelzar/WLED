@@ -27,12 +27,13 @@
   --r2:14px; --ease:cubic-bezier(.22,.8,.26,1); --pad:16px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{-webkit-text-size-adjust:100%}
+html{height:100%;height:100dvh;overflow:hidden;-webkit-text-size-adjust:100%;touch-action:manipulation}
 body{
   background:var(--bg); color:var(--t1);
   font:400 15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
   letter-spacing:-.006em; font-variant-numeric:tabular-nums; -webkit-font-smoothing:antialiased;
-  min-height:100vh; padding-bottom:calc(64px + env(safe-area-inset-bottom)); overscroll-behavior-y:contain;
+  height:100%;height:100dvh;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+  overscroll-behavior:none;
 }
 button,input,select{font:inherit;color:inherit;background:none;border:0;outline:0;font-variant-numeric:tabular-nums}
 button{cursor:pointer}
@@ -42,28 +43,37 @@ input,select{-webkit-appearance:none;appearance:none}
 h1{font-size:17px;font-weight:600;letter-spacing:-.02em}
 
 header{
-  position:sticky;top:0;z-index:20;background:rgba(16,18,22,.94);backdrop-filter:saturate(160%) blur(14px);
+  position:relative;z-index:20;flex:0 0 auto;background:rgba(16,18,22,.94);backdrop-filter:saturate(160%) blur(14px);
   padding:calc(10px + env(safe-area-inset-top)) var(--pad) 10px;
   display:flex;align-items:center;gap:12px
 }
 header .who{flex:1 1 auto;min-width:0}
-header .who b{display:block;font-size:15px;font-weight:600;letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .brand-logo{display:block;width:122px;max-width:28vw;height:auto}
 header .who span{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t3);margin-top:1px}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);flex:0 0 auto}
 .dot.ap{background:var(--amber)} .dot.off{background:var(--t4)}
 .iconbtn{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;color:var(--t2)}
 .iconbtn:active{background:var(--s2)}
 .iconbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.power-btn.lit{color:var(--red);background:rgba(255,71,87,.10)}
+.power-btn.dark{color:var(--lime);background:rgba(200,255,47,.10)}
 .live-resume{display:none;min-height:36px;padding:0 12px;border-radius:9px;background:var(--lime);
   color:var(--ink);font-size:11px;font-weight:700;letter-spacing:.035em;white-space:nowrap}
 .live-resume.on{display:block}
 .live-resume:active{filter:brightness(.92)}
+.btn.wifi-connect{display:none;width:100%;flex:none;margin-bottom:12px}
+.btn.wifi-connect.on{display:flex}
+.home-node-title{margin:1px 1px 16px}
+.home-node-title .lbl{display:block;margin-bottom:2px}
+.home-node-title h1{font-size:27px;font-weight:500;line-height:1.18;letter-spacing:-.035em;
+  overflow-wrap:anywhere}
 
-main{padding:0 var(--pad)}
+main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;padding:0 var(--pad)}
 .view{display:none;padding:18px 0 8px}
 .view.on{display:block}
 nav{
-  position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;
+  position:relative;z-index:30;display:flex;flex:0 0 auto;width:100%;transform:translateZ(0);
   background:rgba(16,18,22,.96);backdrop-filter:saturate(160%) blur(14px);
   padding-bottom:env(safe-area-inset-bottom)
 }
@@ -143,13 +153,41 @@ nav button.on{color:var(--lime)}
 .btn.quiet{background:var(--s2);color:var(--t1);font-weight:500}
 .btn.bad{background:var(--pink);color:var(--ink);font-weight:600}
 .btn.sm{min-height:38px;padding:0 14px;font-size:13px;border-radius:9px;flex:0 0 auto}
+.btn[disabled]{cursor:default;opacity:.38}
+.ota-progress{height:7px;margin-top:10px;border-radius:5px;background:var(--s3);overflow:hidden}
+.ota-progress i{display:block;width:0;height:100%;border-radius:inherit;background:var(--lime);
+  transition:width .18s var(--ease)}
+.ota-meta{margin-top:12px;padding:12px 14px;border-radius:11px;background:var(--s2)}
+.ota-meta div{display:flex;gap:12px;font-size:12px;line-height:1.7}
+.ota-meta span:first-child{flex:1 1 auto;color:var(--t3)}
+.ota-meta span:last-child{color:var(--t2);text-align:right;overflow-wrap:anywhere}
 
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.stats>div{background:var(--s1);padding:13px 15px;border-radius:12px}
+.stats>div,.stats>button{background:var(--s1);padding:13px 15px;border-radius:12px}
+.stats>button{width:100%;color:inherit;text-align:left}
 .stats .k{font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--t3);font-weight:600}
 .stats .v{font-size:19px;margin-top:4px;letter-spacing:-.025em}
 .stats .v i{font-style:normal;font-size:12px;color:var(--t3);margin-left:3px}
 .stats .v.hot,.stats .v.hot i{color:var(--amber)}
+.stats .next{display:block;margin-top:3px;color:var(--t3);font-size:10.5px}
+.node-groups{display:grid;gap:14px}
+.node-group+.node-group{padding-top:13px;border-top:1px solid var(--hair)}
+.node-group-label{margin:0 2px 7px;color:var(--t3);font-size:9px;font-weight:700;
+  letter-spacing:.13em;text-transform:uppercase}
+.node-group.config .stat-edit{box-shadow:inset 0 0 0 1px rgba(200,255,47,.11)}
+.stat-edit{position:relative}
+.stat-edit:active{background:var(--s2)}
+.stat-edit svg{position:absolute;right:15px;top:14px;width:20px;height:20px;fill:none;
+  stroke:var(--lime);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.stat-edit.unset{background:var(--lime);color:var(--ink)}
+.stat-edit.unset:active{filter:brightness(.92)}
+.stat-edit.unset svg{top:50%;transform:translateY(-50%);stroke:var(--ink)}
+.stat-edit .set-title{padding-right:30px;font-size:17px;font-weight:700;letter-spacing:-.01em}
+.stat-edit .set-hint{display:block;margin-top:3px;color:rgba(4,5,6,.65);font-size:10.5px}
+.stat-edit .next.static{color:var(--lime);font-weight:600}
+.stat-edit .universe-count{display:block;margin-top:1px;color:var(--t2);font-size:11.5px;font-weight:600}
+.stat-edit .next.available{margin-top:4px;color:var(--lime);font-size:11.5px;font-weight:600}
+.seg button.static-mode.on{background:var(--lime);color:var(--ink)}
 
 .out{background:var(--s1);border-radius:var(--r2);overflow:hidden}
 .out+.out{margin-top:10px}
@@ -157,6 +195,9 @@ nav button.on{color:var(--lime)}
 .out .oh b{flex:1 1 auto;font-size:13px;font-weight:700;letter-spacing:.06em;color:var(--lime)}
 .out .oh .gp{font-size:10.5px;color:var(--t3);letter-spacing:.06em;background:var(--s2);
   padding:3px 8px;border-radius:6px}
+.out-test{min-height:30px;padding:0 10px;border-radius:8px;background:rgba(200,255,47,.10);
+  color:var(--lime);font-size:11px;font-weight:700;white-space:nowrap}
+.out-test:active{background:rgba(200,255,47,.18)}
 .out .ob{padding:0 16px 14px}
 .step{display:flex;align-items:center;gap:10px}
 .step button{width:56px;height:52px;border-radius:11px;background:var(--s2);color:var(--lime);display:grid;place-items:center;font-size:24px;font-weight:400;line-height:1;flex:0 0 auto}
@@ -169,6 +210,13 @@ nav button.on{color:var(--lime)}
 .sel{width:100%;height:44px;border-radius:10px;background:var(--s2);padding:0 34px 0 12px;font-size:14px;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2361676f' stroke-width='2' stroke-linecap='round'><path d='m6 9 6 6 6-6'/></svg>");
   background-repeat:no-repeat;background-position:right 11px center;background-size:15px}
+.order-control{display:flex;align-items:center;gap:6px}
+.order-control .sel{min-width:0;flex:1 1 auto}
+.detect-order{width:44px;height:44px;border-radius:10px;background:var(--s2);color:var(--lime);
+  display:grid;place-items:center;flex:0 0 auto}
+.detect-order:active{background:var(--s3)}
+.detect-order svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round}
 /* sits directly under the field it changes, at the weight a once-per-install action earns */
 .detect{display:flex;align-items:center;gap:8px;width:100%;min-height:40px;margin-top:8px;
   color:var(--lime);font-size:13px;font-weight:600;text-align:left}
@@ -216,6 +264,17 @@ nav button.on{color:var(--lime)}
 .note.o{background:rgba(200,255,47,.09)} .note.o i{background:var(--lime)}
 .note.b{background:rgba(255,61,135,.10)} .note.b i{background:var(--pink)}
 .note b{color:var(--t1);font-weight:600;display:block;margin-bottom:2px}
+.universe-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.universe-summary>div{padding:12px 14px;border-radius:11px;background:var(--s2)}
+.universe-summary span{display:block;color:var(--t3);font-size:10px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase}
+.universe-summary b{display:block;margin-top:4px;color:var(--t1);font-size:18px;font-weight:500}
+.universe-summary .available{background:rgba(200,255,47,.09)}
+.universe-summary .available b{color:var(--lime)}
+.network-fields.off{opacity:.38}
+.network-fields.off input{pointer-events:none}
+.field-error{min-height:18px;padding-top:8px;color:var(--pink);font-size:11.5px}
+.field-error.ok{color:var(--lime)}
 
 #tbar{position:fixed;left:12px;right:12px;bottom:calc(68px + env(safe-area-inset-bottom));z-index:40;
   display:none;align-items:center;gap:12px;padding:11px 12px 11px 15px;border-radius:13px;
@@ -225,9 +284,9 @@ nav button.on{color:var(--lime)}
 #tbar .tl b{display:block;font-size:13px;font-weight:600}
 #tbar .tl small{font-size:11.5px;color:var(--t3)}
 
-#scrim{position:fixed;inset:0;z-index:50;background:rgba(4,5,6,.6);opacity:0;pointer-events:none;transition:opacity .22s var(--ease)}
+#scrim{position:fixed;inset:0;z-index:85;background:rgba(4,5,6,.6);opacity:0;pointer-events:none;transition:opacity .22s var(--ease)}
 #scrim.on{opacity:1;pointer-events:auto}
-#sheet{position:fixed;left:0;right:0;bottom:0;z-index:60;background:var(--s1);border-radius:20px 20px 0 0;
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:90;background:var(--s1);border-radius:20px 20px 0 0;
   transform:translateY(101%);transition:transform .3s var(--ease);max-height:92vh;display:flex;flex-direction:column}
 #sheet.on{transform:none}
 #sheet .sh{display:flex;align-items:center;gap:12px;padding:16px 16px 12px}
@@ -273,6 +332,7 @@ nav button.on{color:var(--lime)}
   background:var(--bg)}
 .live-splash.on{display:flex}
 .live-panel{width:min(100%,420px);text-align:center}
+.live-logo{display:block;width:162px;max-width:100%;height:auto;margin:0 auto 28px}
 .live-mark{width:54px;height:54px;margin:0 auto 24px;border-radius:50%;display:grid;place-items:center;
   color:var(--cyan);background:var(--s1)}
 .live-mark svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.7;
@@ -281,13 +341,47 @@ nav button.on{color:var(--lime)}
 .live-panel h2{margin-top:10px;font-size:28px;line-height:1.12;font-weight:500;letter-spacing:-.035em}
 .live-panel p{max-width:330px;margin:12px auto 26px;color:var(--t2);font-size:14px}
 .live-panel .btn{width:100%}
+.live-controls{margin:0 0 16px;text-align:left}
+.live-control-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.live-control-head .lbl{flex:1 1 auto}
+.live-control-head strong{font-size:20px;font-weight:500;letter-spacing:-.025em}
+.live-range{width:100%;height:40px;display:block;appearance:none;-webkit-appearance:none;background:transparent}
+.live-range::-webkit-slider-runnable-track{height:8px;border-radius:5px;background:var(--s3)}
+.live-range::-webkit-slider-thumb{width:30px;height:30px;margin-top:-11px;border:0;border-radius:50%;
+  appearance:none;-webkit-appearance:none;background:var(--lime)}
+.live-range::-moz-range-track{height:8px;border-radius:5px;background:var(--s3)}
+.live-range::-moz-range-thumb{width:30px;height:30px;border:0;border-radius:50%;background:var(--lime)}
+.live-panel .live-power{width:42px;height:42px;min-height:42px;padding:0;border-radius:11px;flex:0 0 auto;
+  display:grid;place-items:center}
+.live-power svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round}
+.live-power.on{background:rgba(200,255,47,.10);color:var(--lime)}
+.live-power.off{background:var(--red);color:#fff}
+.ota-splash{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;
+  padding:calc(28px + env(safe-area-inset-top)) 24px calc(28px + env(safe-area-inset-bottom));
+  background:var(--bg)}
+.ota-splash.on{display:flex}
+.ota-panel{width:min(100%,420px);text-align:center}
+.ota-loader{width:58px;height:58px;margin:0 auto 24px;border-radius:50%;display:grid;place-items:center;
+  background:var(--s1)}
+.ota-loader i{width:25px;height:25px;border:2px solid var(--s3);border-top-color:var(--lime);
+  border-radius:50%;animation:sp .8s linear infinite}
+.ota-panel .lbl{color:var(--lime)}
+.ota-panel h2{margin-top:10px;font-size:28px;line-height:1.12;font-weight:500;letter-spacing:-.035em}
+.ota-panel>p{max-width:350px;margin:12px auto 0;color:var(--t2);font-size:14px}
+.ota-panel .ota-progress{margin:24px 0 0;height:8px}
+.ota-caution{padding:14px 16px;margin-top:16px;border-radius:11px;background:rgba(255,179,39,.09);
+  color:var(--amber)!important;font-size:12.5px!important;line-height:1.45}
+.ota-panel .btn{width:100%;margin-top:18px}
 </style>
 </head>
 <body>
 
 <header>
   <div class="who">
-    <b id="hName">Loomx Node</b>
+    <svg class="brand-logo" viewBox="0 0 162 24" role="img" aria-label="Loomx">
+      <path d="M25.2978 13.895C25.2978 14.9714 24.4396 15.8444 23.3731 15.8742H8.92862C8.38298 15.8791 7.93655 15.4377 7.93655 14.8871V2.92768C7.93655 1.82153 7.26194 0.824498 6.23515 0.41279C4.73713 -0.147729 3.08533 -0.132848 1.59723 0.452473C0.620043 0.839379 0 1.81657 0 2.86816V19.8425C0 22.0349 1.7758 23.8107 3.96828 23.8107H25.3424C26.3494 23.8058 27.272 23.2254 27.7085 22.3127C27.9218 21.8613 28.0756 21.395 28.1648 20.9189C28.2492 20.4823 28.77 20.3137 29.0924 20.6163C31.2155 22.5955 34.0676 23.8058 37.1976 23.8058H49.5985C53.1054 23.8058 56.2602 22.2879 58.4378 19.8722C58.6214 19.6688 58.9289 19.6688 59.1124 19.8722C61.29 22.2879 64.4448 23.8058 67.9518 23.8058H80.3526C83.4975 23.8058 86.3497 22.5855 88.4777 20.5964C88.7951 20.2988 89.316 20.5319 89.2763 20.9784C89.187 22.0151 89.9112 22.9724 90.8834 23.3544C92.4063 23.9546 94.0977 23.9546 95.6206 23.3544C96.5978 22.9675 97.2178 21.9903 97.2178 20.9387V11.4644C97.2178 11.1073 97.6196 10.894 97.9122 11.0924L103.498 14.8623C105.844 16.4446 108.919 16.4446 111.265 14.8623L116.856 11.0924C117.153 10.894 117.55 11.1073 117.55 11.4644V20.9437C117.55 22.0449 118.24 23.027 119.271 23.4089C120.04 23.6966 120.849 23.8256 121.652 23.8107H127.873C129.455 23.8107 130.998 23.3395 132.312 22.4516L139.465 17.6252C140.303 17.0597 141.4 17.0597 142.238 17.6252L149.391 22.4516C150.7 23.3345 152.248 23.8107 153.83 23.8107H159.212C161.162 23.8107 161.94 21.2958 160.338 20.1897L148.294 11.9059L160.338 3.62213C161.955 2.51598 161.172 0.0010812 159.222 0.0010812H153.84C152.258 0.0010812 150.715 0.472314 149.401 1.36022L142.248 6.18663C141.41 6.75211 140.313 6.75211 139.475 6.18663L132.322 1.36022C131.008 0.472314 129.465 0.0010812 127.883 0.0010812H121.643C120.849 -0.0137998 120.05 0.12509 119.291 0.407829L119.247 0.42271C118.131 0.84434 117.064 1.38998 116.077 2.05466L108.775 6.97533C107.937 7.54081 106.841 7.54081 106.003 6.97533L98.7109 2.05962C97.6841 1.36518 96.5779 0.804657 95.4122 0.378067C93.9936 -0.137808 92.436 -0.117967 91.0174 0.402869L90.9975 0.41279C89.9658 0.789776 89.2812 1.77192 89.2812 2.86816C89.2812 3.29475 88.7852 3.49812 88.4777 3.21042C86.3546 1.22629 83.5024 0.0010812 80.3576 0.0010812H67.9567C64.4498 0.0010812 61.295 1.51895 59.1174 3.93463C58.9339 4.13801 58.6263 4.13801 58.4428 3.93463C56.2652 1.52391 53.1104 0.0010812 49.6034 0.0010812H37.4853C30.8583 0.0010812 25.3077 5.33345 25.3027 11.9109V13.895H25.2978ZM49.6034 15.8791H37.2026C35.0151 15.8791 33.2343 14.0984 33.2343 11.9109C33.2343 9.72336 35.0151 7.94259 37.2026 7.94259H49.6034C51.791 7.94259 53.5717 9.72336 53.5717 11.9109C53.5717 14.0984 51.791 15.8791 49.6034 15.8791ZM80.3576 15.8791H67.9567C65.7692 15.8791 63.9884 14.0984 63.9884 11.9109C63.9884 9.72336 65.7692 7.94259 67.9567 7.94259H80.3576C82.5451 7.94259 84.3259 9.72336 84.3259 11.9109C84.3259 14.0984 82.5451 15.8791 80.3576 15.8791ZM126.196 16.8762C125.899 17.0795 125.497 16.8663 125.497 16.5091V7.30271C125.497 6.94556 125.899 6.73227 126.196 6.93564L133.423 11.9059L126.196 16.8762Z" fill="#9AFF0D"/>
+    </svg>
     <span><i class="dot" id="hDot"></i><span id="hNet">connecting...</span></span>
   </div>
   <span class="saved" id="hSaved">saved</span>
@@ -295,10 +389,15 @@ nav button.on{color:var(--lime)}
   <button class="iconbtn" id="hId" title="Flash the lights so you can find this node">
     <svg viewBox="0 0 24 24"><path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3 4.9 4.9M19.1 19.1l-1.4-1.4M17.7 6.3l1.4-1.4M4.9 19.1l1.4-1.4"/><circle cx="12" cy="12" r="3.5"/></svg>
   </button>
+  <button class="iconbtn power-btn lit" id="btnPwr" aria-label="Turn off" title="Turn off">
+    <svg viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M6.3 5.7a8 8 0 1 0 11.4 0"/></svg>
+  </button>
 </header>
 
 <main>
   <section class="view on" id="v-home">
+    <div class="home-node-title"><span class="lbl">Node</span><h1 id="homeNodeName">Loomx</h1></div>
+    <button class="btn pri wifi-connect" id="homeWifiConnect">Connect to Wi-Fi</button>
     <div class="bri" id="briCard">
       <div class="top">
         <div class="tinfo"><span class="lbl">Brightness</span><span class="fxname" id="briFx"></span></div>
@@ -308,10 +407,9 @@ nav button.on{color:var(--lime)}
         <div class="trk"><div class="fil" id="briFil"><i class="tex" id="briTex"></i></div></div>
         <div class="kn" id="briKn"></div>
       </div>
-      <button class="pbig lit" id="btnPwr">Turn off</button>
     </div>
     <div class="sec"><span class="lbl">This node</span><em id="upStr"></em></div>
-    <div class="stats" id="statGrid"></div>
+    <div class="node-groups" id="statGrid"></div>
     <div class="sec"><span class="lbl">Test</span><em>restores your look when you stop</em></div>
     <div class="card">
       <div class="chips" id="testChips"></div>
@@ -335,13 +433,16 @@ nav button.on{color:var(--lime)}
   </section>
 
   <section class="view" id="v-set">
-    <div class="sec" style="margin-top:4px"><span class="lbl">Network</span></div>
+    <div class="sec" style="margin-top:4px"><span class="lbl">This node</span></div>
+    <div class="rows" id="setIdentity"></div>
+    <div class="sec"><span class="lbl">Network</span></div>
+    <button class="btn pri wifi-connect" id="setWifiConnect">Connect to Wi-Fi</button>
     <div class="rows" id="setNet"></div>
     <div class="sec"><span class="lbl">Show control</span></div>
     <div class="rows" id="setShow"></div>
     <div class="sec"><span class="lbl">Hardware</span></div>
     <div class="rows" id="setHw"></div>
-    <div class="sec"><span class="lbl">This node</span></div>
+    <div class="sec"><span class="lbl">Maintenance</span></div>
     <div class="rows" id="setNode"></div>
     <div class="foot" id="foot2"></div>
   </section>
@@ -366,13 +467,39 @@ nav button.on{color:var(--lime)}
 
 <div class="live-splash" id="liveSplash" role="dialog" aria-modal="true" aria-labelledby="liveTitle">
   <div class="live-panel">
+    <svg class="live-logo" viewBox="0 0 162 24" role="img" aria-label="Loomx">
+      <path d="M25.2978 13.895C25.2978 14.9714 24.4396 15.8444 23.3731 15.8742H8.92862C8.38298 15.8791 7.93655 15.4377 7.93655 14.8871V2.92768C7.93655 1.82153 7.26194 0.824498 6.23515 0.41279C4.73713 -0.147729 3.08533 -0.132848 1.59723 0.452473C0.620043 0.839379 0 1.81657 0 2.86816V19.8425C0 22.0349 1.7758 23.8107 3.96828 23.8107H25.3424C26.3494 23.8058 27.272 23.2254 27.7085 22.3127C27.9218 21.8613 28.0756 21.395 28.1648 20.9189C28.2492 20.4823 28.77 20.3137 29.0924 20.6163C31.2155 22.5955 34.0676 23.8058 37.1976 23.8058H49.5985C53.1054 23.8058 56.2602 22.2879 58.4378 19.8722C58.6214 19.6688 58.9289 19.6688 59.1124 19.8722C61.29 22.2879 64.4448 23.8058 67.9518 23.8058H80.3526C83.4975 23.8058 86.3497 22.5855 88.4777 20.5964C88.7951 20.2988 89.316 20.5319 89.2763 20.9784C89.187 22.0151 89.9112 22.9724 90.8834 23.3544C92.4063 23.9546 94.0977 23.9546 95.6206 23.3544C96.5978 22.9675 97.2178 21.9903 97.2178 20.9387V11.4644C97.2178 11.1073 97.6196 10.894 97.9122 11.0924L103.498 14.8623C105.844 16.4446 108.919 16.4446 111.265 14.8623L116.856 11.0924C117.153 10.894 117.55 11.1073 117.55 11.4644V20.9437C117.55 22.0449 118.24 23.027 119.271 23.4089C120.04 23.6966 120.849 23.8256 121.652 23.8107H127.873C129.455 23.8107 130.998 23.3395 132.312 22.4516L139.465 17.6252C140.303 17.0597 141.4 17.0597 142.238 17.6252L149.391 22.4516C150.7 23.3345 152.248 23.8107 153.83 23.8107H159.212C161.162 23.8107 161.94 21.2958 160.338 20.1897L148.294 11.9059L160.338 3.62213C161.955 2.51598 161.172 0.0010812 159.222 0.0010812H153.84C152.258 0.0010812 150.715 0.472314 149.401 1.36022L142.248 6.18663C141.41 6.75211 140.313 6.75211 139.475 6.18663L132.322 1.36022C131.008 0.472314 129.465 0.0010812 127.883 0.0010812H121.643C120.849 -0.0137998 120.05 0.12509 119.291 0.407829L119.247 0.42271C118.131 0.84434 117.064 1.38998 116.077 2.05466L108.775 6.97533C107.937 7.54081 106.841 7.54081 106.003 6.97533L98.7109 2.05962C97.6841 1.36518 96.5779 0.804657 95.4122 0.378067C93.9936 -0.137808 92.436 -0.117967 91.0174 0.402869L90.9975 0.41279C89.9658 0.789776 89.2812 1.77192 89.2812 2.86816C89.2812 3.29475 88.7852 3.49812 88.4777 3.21042C86.3546 1.22629 83.5024 0.0010812 80.3576 0.0010812H67.9567C64.4498 0.0010812 61.295 1.51895 59.1174 3.93463C58.9339 4.13801 58.6263 4.13801 58.4428 3.93463C56.2652 1.52391 53.1104 0.0010812 49.6034 0.0010812H37.4853C30.8583 0.0010812 25.3077 5.33345 25.3027 11.9109V13.895H25.2978ZM49.6034 15.8791H37.2026C35.0151 15.8791 33.2343 14.0984 33.2343 11.9109C33.2343 9.72336 35.0151 7.94259 37.2026 7.94259H49.6034C51.791 7.94259 53.5717 9.72336 53.5717 11.9109C53.5717 14.0984 51.791 15.8791 49.6034 15.8791ZM80.3576 15.8791H67.9567C65.7692 15.8791 63.9884 14.0984 63.9884 11.9109C63.9884 9.72336 65.7692 7.94259 67.9567 7.94259H80.3576C82.5451 7.94259 84.3259 9.72336 84.3259 11.9109C84.3259 14.0984 82.5451 15.8791 80.3576 15.8791ZM126.196 16.8762C125.899 17.0795 125.497 16.8663 125.497 16.5091V7.30271C125.497 6.94556 125.899 6.73227 126.196 6.93564L133.423 11.9059L126.196 16.8762Z" fill="#9AFF0D"/>
+    </svg>
     <div class="live-mark">
       <svg viewBox="0 0 24 24"><path d="M5 8.5a9 9 0 0 1 14 0M8 12a5 5 0 0 1 8 0"/><circle cx="12" cy="16" r="1.5"/></svg>
     </div>
     <span class="lbl" id="liveMode">Live data</span>
     <h2 id="liveTitle">This node is receiving data</h2>
-    <p>The incoming stream has control of the lights. Override it temporarily to use this screen.</p>
+    <p>The incoming stream controls the pixel colors. Master brightness and power remain available here.</p>
+    <div class="live-controls">
+      <div class="live-control-head"><span class="lbl">Brightness</span><strong id="liveBriVal">50%</strong>
+        <button class="live-power on" id="livePower" aria-label="Turn live output off" title="Turn live output off">
+          <svg viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M6.3 5.7a8 8 0 1 0 11.4 0"/></svg>
+        </button>
+      </div>
+      <input class="live-range" id="liveBri" type="range" min="0" max="100" value="50"
+        aria-label="Live output brightness">
+    </div>
+    <button class="btn" id="liveOutputs">Output brightness and locks</button>
     <button class="btn pri" id="liveOverride">Override temporarily</button>
+  </div>
+</div>
+
+<div class="ota-splash" id="otaSplash" role="dialog" aria-modal="true" aria-labelledby="otaSplashTitle"
+  aria-describedby="otaSplashMessage">
+  <div class="ota-panel" aria-live="polite">
+    <div class="ota-loader" id="otaSplashLoader"><i></i></div>
+    <span class="lbl" id="otaSplashPhase">Firmware update</span>
+    <h2 id="otaSplashTitle">Preparing update</h2>
+    <p id="otaSplashMessage">This may take a few minutes.</p>
+    <div class="ota-progress"><i id="otaSplashBar"></i></div>
+    <p class="ota-caution" id="otaSplashCaution">Do not unplug the controller or leave this screen.</p>
+    <button class="btn quiet" id="otaSplashBack" style="display:none">Back to updates</button>
   </div>
 </div>
 
@@ -395,11 +522,25 @@ var TYPES=[
   {id:51,n:'APA102 / SK9822',w:0,ma:50},
   {id:52,n:'LPD8806',w:0,ma:50}
 ];
-var ORDERS=['RGB','RBG','GRB','GBR','BRG','BGR'];
-var ORDERS_W=['RGBW','RBGW','GRBW','GBRW','BRGW','BGRW'];
-/* ESP32 pins that are actually safe for pixels. 6-11 are wired to flash. */
-var PINS=[2,4,5,12,13,14,15,16,17,18,19,21,22,23,25,26,27,32,33];
-var RISKY={2:'strapping pin',12:'strapping pin',15:'strapping pin'};
+/* These values must match COL_ORDER_* in wled00/const.h exactly:
+   0 GRB, 1 RGB, 2 BRG, 3 RBG, 4 BGR, 5 GBR. */
+var ORDERS=['GRB','RGB','BRG','RBG','BGR','GBR'];
+var ORDERS_W=ORDERS.map(function(order){return order+'W'});
+function orderChoices(rgbw){
+  return rgbw?ORDERS_W:ORDERS;
+}
+function encodeColorOrder(order){
+  var code=ORDERS.indexOf(String(order||'').replace('W',''));
+  return code<0?0:code;
+}
+function decodeColorOrder(code,rgbw){
+  var order=ORDERS[(Number(code)||0)&15]||ORDERS[0];
+  return rgbw?order+'W':order;
+}
+/* The controller maps include UART and strapping pins wired to onboard outputs. */
+var BOARD_PINS={VX4:[16,3,1,4],VX8:[0,1,2,3,4,5,12,13]};
+var PINS=[0,1,2,3,4,5,12,13,14,15,16,17,18,19,21,22,23,25,26,27,32,33];
+var RISKY={0:'strapping pin',1:'UART TX',2:'strapping pin',3:'UART RX',12:'strapping pin',15:'strapping pin'};
 var typeOf=function(n){for(var i=0;i<TYPES.length;i++)if(TYPES[i].n===n)return TYPES[i];return TYPES[0]};
 var maOf=function(o){return typeOf(o.type).ma};
 var ampsOf=function(o){return o.len*maOf(o)/1000};
@@ -411,7 +552,7 @@ var MOCK=false;
 var BLACK=[0,0,0];
 var HIGHLIGHT=[200,255,47];
 var MEM={
-  info:{name:'Loomx Node A',ver:'0.15.0',uptime:5360000,ip:'192.168.1.42',ssid:'Hillcrest 5G',rssi:-54,ap:false,arch:'esp32',live:false,liveMode:'',liveIp:''},
+  info:{name:'Loomx Node A',ver:'0.15.0',release:'VX4',loomx:'4c75e01ba68416a1cf650480a6298d908a917ff5',loomxVer:'1.0.0',uptime:5360000,ip:'192.168.1.42',ssid:'Hillcrest 5G',savedSsid:'Hillcrest 5G',rssi:-54,ap:false,wifiConnected:true,networkConnected:true,wifiConfigured:true,mode:'station',arch:'esp32',live:false,liveMode:'',liveIp:''},
   state:{on:true,bri:184,seg:[{fx:0,col:[BLACK.slice()]}]},
   startup:{on:true,bri:184,ps:0},
   outs:[
@@ -420,31 +561,108 @@ var MEM={
     {len:100,type:'WS2812B / SK6812',order:'GRB',pin:5},
     {len:100,type:'SK6812 RGBW',order:'GRBW',pin:13}
   ],
-  net:{proto:'sACN',uni:1,addr:1,timeout:2500,dhcp:true,gw:'192.168.1.1',mask:'255.255.255.0'},
-  ap:{ssid:'Loomx Node',pass:'loomx1234'}
+  net:{proto:'sACN',uni:1,uniSet:false,addr:1,timeout:2500,dhcp:true,gw:'192.168.1.1',mask:'255.255.255.0'},
+  ap:{ssid:'Loomx',pass:'loomx1234'}
 };
 var SCAN=[
   {ssid:'Hillcrest 5G',rssi:-52,lock:1},{ssid:'Hillcrest 2.4G',rssi:-58,lock:1},
   {ssid:'Hillcrest Guest',rssi:-67,lock:1},{ssid:'BT-4KJH2P',rssi:-74,lock:1},
   {ssid:'Pool House',rssi:-81,lock:1},{ssid:'xfinitywifi',rssi:-86,lock:0}
 ];
+function validBssid(value){
+  value=String(value||'').toLowerCase();
+  return !!value&&value!=='00:00:00:00:00:00';
+}
+function syncNetworkInfo(info,cfg){
+  info=info||{};
+  var wifi=info.wifi||{};
+  var configured=cfg&&cfg.nw&&cfg.nw.ins;
+  var configuredSsid=configured&&configured.length?String(configured[0].ssid||''):'';
+  var savedSsid=String(wifi.saved_ssid||configuredSsid||S.info.savedSsid||'');
+  var inferredConnected=!wifi.ap&&validBssid(wifi.bssid);
+  var wifiConnected=typeof wifi.connected==='boolean'?wifi.connected:inferredConnected;
+  var ethernetConnected=!!wifi.ethernet||wifi.mode==='ethernet';
+  /* A confirmed interface connection is authoritative. Network.isConnected()
+     can lag behind WiFi.status() on ESP32 and must not resurrect the prompt. */
+  var networkConnected=wifiConnected||ethernetConnected||wifi.network===true;
+  var apActive=!!wifi.ap&&!wifiConnected&&!ethernetConnected;
+  var connectedSsid=wifiConnected?String(wifi.ssid||savedSsid||S.info.ssid||''):'';
+  var rssi=wifi.rssi==null?(S.info.rssi||0):Number(wifi.rssi)||0;
+  S.info.wifiConnected=wifiConnected;
+  S.info.ethernetConnected=ethernetConnected;
+  S.info.networkConnected=networkConnected;
+  S.info.wifiConfigured=typeof wifi.configured==='boolean'?wifi.configured:!!savedSsid;
+  S.info.savedSsid=savedSsid;
+  S.info.ssid=connectedSsid;
+  S.info.rssi=rssi;
+  S.info.ap=apActive;
+  S.info.mode=String(ethernetConnected?'ethernet':wifi.mode||(wifiConnected?'station':apActive?'ap':
+    networkConnected?'ethernet':savedSsid?'connecting':'offline'));
+  S.info.apIp=String(wifi.ap_ip||S.info.apIp||'');
+  S.net.dhcp=typeof wifi.dhcp==='boolean'?wifi.dhcp:S.net.dhcp!==false;
+  if(S.net.dhcp!==false||!S.net.ip)
+    S.net.ip=String(info.ip&&info.ip!=='0.0.0.0'?info.ip:S.net.ip||'');
+  if(S.net.dhcp!==false||!S.net.gw) S.net.gw=String(wifi.gateway||S.net.gw||'');
+  if(S.net.dhcp!==false||!S.net.mask)
+    S.net.mask=String(wifi.subnet||S.net.mask||'255.255.255.0');
+  if(apActive&&S.info.apIp) S.info.ip=S.info.apIp;
+  else if(info.ip&&info.ip!=='0.0.0.0') S.info.ip=info.ip;
+}
+/* AI: below section was generated by an AI */
+var SETTINGS_PIN_KEY='loomxSettingsPin';
+function savedSettingsPin(){
+  try{
+    var pin=localStorage.getItem(SETTINGS_PIN_KEY)||'1234';
+    return /^\d{4}$/.test(pin)?pin:'1234';
+  }catch(e){return '1234'}
+}
+function rememberSettingsPin(pin){
+  try{localStorage.setItem(SETTINGS_PIN_KEY,pin)}catch(e){}
+}
+/* AI: end */
 function req(url,body){
   if(MOCK) return Promise.reject(new Error('mock'));
+  /* AI: below section was generated by an AI */
+  if(body&&url.indexOf('/json/cfg')===0&&!Object.prototype.hasOwnProperty.call(body,'pin')){
+    body=JSON.parse(JSON.stringify(body));
+    body.pin=savedSettingsPin();
+  }
+  /* AI: end */
   var o=body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{};
   o.cache='no-store';
   return fetch(url,o).then(function(r){
-    if(!r.ok) throw new Error(r.status);
+    if(!r.ok) return r.text().then(function(message){
+      throw new Error(message||('Request failed ('+r.status+')'));
+    });
     return r.text();
   }).then(function(t){ return t?JSON.parse(t):{} });
 }
+/* AI: below section was generated by an AI */
+function nodeHostName(name){
+  var host=String(name||'').toLowerCase();
+  if(host.normalize) host=host.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  host=host.replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,32);
+  return host||'loomx-node';
+}
+/* AI: end */
+var wifiScanPromise=null;
 var api={
   load:function(){
+    var loadedInfo={};
     return req('/json').then(function(j){
       var info=j.info||{}, st=j.state||{};
-      S.info={name:info.name||'Loomx Node',ver:info.ver||'?',uptime:(info.uptime||0)*1000,
-        ip:info.ip||location.hostname,ssid:info.ssid||'',
-        rssi:(info.wifi&&info.wifi.signal)||0,ap:!!(info.wifi&&info.wifi.ap),arch:info.arch||'esp32'};
-      S.on=!!st.on; S.bri=st.bri==null?128:st.bri;
+      loadedInfo=info;
+      S.info={name:info.name||'Loomx',ver:info.ver||'?',uptime:(info.uptime||0)*1000,
+        ip:info.ip||location.hostname,
+        ssid:'',savedSsid:'',rssi:0,ap:false,wifiConnected:false,networkConnected:false,
+        wifiConfigured:false,ethernetConnected:false,mode:'offline',apIp:'',arch:info.arch||'esp32',
+        release:info.release||'',loomx:info.loomx||'',loomxVer:info.loomx_ver||''};
+      syncNetworkInfo(info,null);
+      if(!S.ota.model&&/^(VX4|VX8)$/.test(S.info.release)){
+        S.ota.model=S.info.release;
+        saveOtaPrefs();
+      }
+      S.on=st.outputPower==null?!!st.on:!!st.outputPower; S.bri=st.masterBri==null?(st.bri==null?128:st.bri):st.masterBri;
       syncLive(st,info);
       var sg=st.seg&&st.seg[0];
       S.col=(sg&&sg.col&&sg.col[0])||S.col;
@@ -455,8 +673,10 @@ var api={
       },function(){});
       return req('/json/cfg').catch(function(){return null});
     }).then(function(cfg){
-      S.outs=busesFrom(cfg)||S.outs; S.net=netFrom(cfg)||S.net; S.ap=apFrom(cfg)||S.ap;
+      S.outs=busesFrom(cfg)||S.outs; S.net=netFrom(cfg,loadedInfo)||S.net; S.ap=apFrom(cfg)||S.ap;
       S.startup=startupFrom(cfg);
+      syncNetworkInfo(loadedInfo,cfg);
+
     }).catch(function(){
       MOCK=true;
       S.info=copy(MEM.info); S.on=MEM.state.on; S.bri=MEM.state.bri;
@@ -487,35 +707,145 @@ var api={
     var ins=S.outs.map(function(o){
       var t=typeOf(o.type);
       var b={start:start,len:o.len,pin:[o.pin],
-        order:(t.w?ORDERS_W:ORDERS).indexOf(o.order),type:t.id,rev:false,skip:0,rgbw:!!t.w};
+        order:encodeColorOrder(o.order),bri:outputLevel(o),briLock:!!o.briLock,type:t.id,rev:false,skip:0,rgbw:!!t.w,maxpwr:0};
       start+=o.len; return b;
     });
-    return req('/json/cfg',{hw:{led:{total:start,ins:ins}}});
+    return req('/json/cfg',{hw:{led:{total:start,maxpwr:0,ins:ins}}});
+  },
+  // AI: below section was generated by an AI
+  setOutputLevels:function(entries,pin){
+    if(MOCK){
+      entries.forEach(function(entry){
+        var output=S.outs[entry.id];
+        if(entry.lock===true&&!output.briLock) output.bri=Math.round(outputLevel(output)*S.bri/255);
+        if(entry.lock!=null) output.briLock=entry.lock;
+        if(entry.bri!=null) output.bri=entry.bri;
+      });
+      MEM.outs=S.outs.map(copy);
+      return Promise.resolve();
+    }
+    var body={hw:{led:{outputBri:entries}}};
+    if(pin!=null) body.pin=pin;
+    return req('/json/cfg',body).then(function(){
+      if(pin!=null) rememberSettingsPin(pin);
+      return req('/json/state');
+    }).then(syncOutputLevels);
+  },
+  // AI: end
+  setControllerOutputs:function(model){
+    var pins=BOARD_PINS[model];
+    if(!pins) return Promise.reject(new Error('Unsupported controller type'));
+    var previous=S.outs.map(copy);
+    S.outs=pins.map(function(pin,i){
+      var source=previous[i]||{};
+      return {len:source.len||30,type:source.type||TYPES[0].n,
+        order:source.order||'GRB',bri:outputLevel(source),briLock:!!source.briLock,pin:pin};
+    });
+    return api.writeBuses().catch(function(error){
+      S.outs=previous;
+      throw error;
+    });
   },
   setNet:function(p){
     assign(S.net,p);
     if(MOCK){ assign(MEM.net,p); return Promise.resolve(); }
-    return req('/json/cfg',{"if":{live:{dmx:{uni:S.net.uni,addr:S.net.addr},
+    return req('/json/cfg',{"if":{live:{dmx:{uni:S.net.uni,addr:S.net.addr,loomxset:!!S.net.uniSet},
       timeout:Math.round(S.net.timeout/100),
       e131:{en:S.net.proto==='sACN'},artnet:{en:S.net.proto==='Art-Net'}}}});
   },
+  setNetwork:function(p){
+    var previous=copy(S.net);
+    assign(S.net,p);
+    if(MOCK){ assign(MEM.net,p); S.info.ip=p.ip||S.info.ip; return Promise.resolve(); }
+    function octets(value){return String(value).split('.').map(function(part){return Number(part)})}
+    var zero=[0,0,0,0];
+    /* Preserve every saved network and update the profile that is actually in use.
+       Sending a one-item array always changed profile zero, even when WLED had
+       selected another saved SSID. Ethernet intentionally uses profile zero. */
+    var profiles=(S.net.profiles||[]).map(function(profile){
+      return JSON.parse(JSON.stringify(profile));
+    });
+    if(!profiles.length) profiles=[{}];
+    var index=clamp(Number(S.net.index)||0,0,profiles.length-1);
+    profiles[index].ip=S.net.dhcp?zero:octets(S.net.ip);
+    profiles[index].gw=S.net.dhcp?zero:octets(S.net.gw);
+    profiles[index].sn=S.net.dhcp?[255,255,255,0]:octets(S.net.mask);
+    S.net.profiles=profiles;
+    return req('/json/cfg',{nw:{ins:profiles},sv:true}).catch(function(error){
+      S.net=previous;
+      throw error;
+    });
+  },
   setAp:function(p){ assign(S.ap,p);
     if(MOCK) return Promise.resolve();
-    return req('/json/cfg',{ap:{ssid:S.ap.ssid,psk:S.ap.pass}}); },
-  setName:function(n){ S.info.name=n;
+    return req('/json/cfg',{ap:{ssid:S.ap.ssid,psk:S.ap.pass,behav:1},sv:true}); },
+  /* AI: below section was generated by an AI
+     Keep WLED's display name, browser identity, mDNS name and DHCP hostname in
+     sync. A reboot is required for both Wi-Fi and Ethernet discovery to
+     advertise the new hostname consistently. */
+  setName:function(n){
+    var previous=S.info.name;
+    S.info.name=n;
     if(MOCK){ MEM.info.name=n; return Promise.resolve(); }
-    return req('/json/cfg',{id:{name:n}}); },
-  scan:function(){
-    if(MOCK) return wait(1000).then(function(){return SCAN});
-    return req('/json/net').then(function(j){
-      return (j&&j.networks)?j.networks.map(function(n){
-        return {ssid:n.ssid,rssi:n.rssi,lock:n.enc>0}}):SCAN;
-    }).catch(function(){return SCAN});
+    return req('/json/cfg',{id:{name:n,mdns:nodeHostName(n)},rb:true}).catch(function(error){
+      S.info.name=previous;
+      throw error;
+    });
   },
+  /* AI: end */
+  /* AI: below section was generated by an AI */
+  setSettingsPin:function(current,next){
+    if(MOCK) return Promise.resolve();
+    return fetch('/loomx/security/pin',{method:'POST',cache:'no-store',headers:{
+      'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'
+    },body:'current='+encodeURIComponent(current)+'&pin='+encodeURIComponent(next)}).then(function(response){
+      if(response.ok){rememberSettingsPin(next);return response.json()}
+      return response.text().then(function(message){throw new Error(message||'The PIN could not be saved.')});
+    });
+  },
+  /* AI: end */
+  /* AI: below section was generated by an AI */
+  // Repeated callers share one scan and its polling chain until it settles.
+  scan:function(){
+    if(wifiScanPromise) return wifiScanPromise;
+    function poll(start){
+      return req('/json/net?scan='+(start?1:0)).then(function(j){
+        if(j&&j.scan==='running') return wait(750).then(function(){return poll(false)});
+        if(!j||j.scan!=='complete'||!Array.isArray(j.networks))
+          throw new Error('Wi-Fi scanning failed. Please try again.');
+        return j.networks.filter(function(n){return n.ssid}).sort(function(a,b){return b.rssi-a.rssi})
+          .filter(function(n,i,list){return list.findIndex(function(other){return other.ssid===n.ssid})===i})
+          .map(function(n){return {ssid:n.ssid,rssi:n.rssi,lock:n.enc>0}});
+      });
+    }
+    wifiScanPromise=(MOCK?wait(1000).then(function(){return SCAN}):poll(true))
+      .finally(function(){wifiScanPromise=null});
+    return wifiScanPromise;
+  },
+  /* AI: end */
   join:function(ssid,pass){
     if(MOCK) return wait(1300).then(function(){MEM.info.ssid=ssid;MEM.info.ap=false;return true});
-    return req('/json/cfg',{nw:{ins:[{ssid:ssid,psk:pass,ip:[0,0,0,0]}]}})
-      .then(function(){return wait(2500)}).then(function(){return true});
+    /* AI: below section was generated by an AI
+       Keep profile zero's address because Ethernet shares it with the Wi-Fi
+       fallback. Replacing the profile here used to erase a wired static IP. */
+    var profiles=(S.net.profiles||[]).map(function(profile){
+      return JSON.parse(JSON.stringify(profile));
+    });
+    if(!profiles.length) profiles=[{ip:[0,0,0,0],gw:[0,0,0,0],sn:[255,255,255,0]}];
+    var index=S.info.ethernetConnected?0:
+      clamp(Number(S.net.index)||0,0,profiles.length-1);
+    // A new SSID must not inherit the previous router's BSSID restriction.
+    if(profiles[index].ssid!==ssid) profiles[index].bssid='000000000000';
+    profiles[index].ssid=ssid;
+    profiles[index].psk=pass;
+    return req('/json/cfg',{nw:{ins:profiles},
+      ap:{behav:1},sv:true})
+      .then(function(result){
+        if(result&&result.error) throw new Error('Wi-Fi settings could not be saved. Check the settings PIN.');
+        S.net.profiles=profiles;
+        return true;
+      });
+    /* AI: end */
   }
 };
 function copy(o){var r={};for(var k in o)r[k]=o[k];return r}
@@ -526,31 +856,65 @@ function busesFrom(cfg){
   return ins.map(function(b){
     var t=TYPES[0];
     for(var i=0;i<TYPES.length;i++) if(TYPES[i].id===b.type){t=TYPES[i];break}
-    var list=t.w?ORDERS_W:ORDERS;
-    return {len:b.len||0,type:t.n,order:list[b.order]||list[2],pin:(b.pin&&b.pin[0])||2};
+    return {len:b.len||0,type:t.n,order:decodeColorOrder(b.order,t.w),bri:b.bri==null?255:clamp(Number(b.bri)||0,0,255),briLock:!!b.briLock,
+      pin:b.pin&&b.pin.length?Number(b.pin[0]):2};
   });
 }
-function netFrom(cfg){
+function netFrom(cfg,info){
   var l=cfg&&cfg["if"]&&cfg["if"].live; if(!l) return null;
-  var art=l.artnet&&l.artnet.en;
-  return {proto:art?'Art-Net':'sACN',uni:(l.dmx&&l.dmx.uni)||1,addr:(l.dmx&&l.dmx.addr)||1,
-    timeout:(l.timeout||25)*100,dhcp:true,gw:'',mask:''};
+  var art=l.artnet&&l.artnet.en, dmx=l.dmx||{}, universe=dmx.uni||1;
+  var universeSet=typeof dmx.loomxset==='boolean'?dmx.loomxset:universe!==1;
+  var profiles=cfg&&cfg.nw&&cfg.nw.ins||[], wifi=info&&info.wifi||{};
+  var index=wifi.ethernet?0:clamp(Number(wifi.index)||0,0,Math.max(0,profiles.length-1));
+  var network=profiles[index]||{};
+  function address(parts){return Array.isArray(parts)?parts.join('.'):''}
+  var configuredIp=address(network.ip), dhcp=!configuredIp||configuredIp==='0.0.0.0';
+  return {proto:art?'Art-Net':'sACN',uni:universe,uniSet:universeSet,addr:dmx.addr||1,
+    timeout:(l.timeout||25)*100,dhcp:dhcp,ip:dhcp?'':configuredIp,
+    gw:address(network.gw),mask:address(network.sn)||'255.255.255.0',index:index,profiles:profiles};
 }
 function apFrom(cfg){ var a=cfg&&cfg.ap;
-  return a?{ssid:a.ssid||'Loomx Node',pass:a.psk||'loomx1234'}:null }
+  return a?{ssid:a.ssid||'Loomx',pass:a.psk||'loomx1234'}:null }
 function startupFrom(cfg){ var d=cfg&&cfg.def;
   return d?{on:!!d.on,bri:d.bri==null?128:d.bri,ps:d.ps||0}:null }
 
 /* ------------------------------------------------------------------- state */
+var OTA_PREFS_KEY='loomx.ota.v1';
+var OTA_ORIGIN='https://kjcccohhtrjewpasjvic.supabase.co';
+var OTA_MANIFESTS={
+  VX4:OTA_ORIGIN+'/storage/v1/object/public/firmware/VX4/latest.json',
+  VX8:OTA_ORIGIN+'/storage/v1/object/public/firmware/VX8/latest.json'
+};
+var OTA_CHECK_TIMEOUT_MS=8000;
+function loadOtaPrefs(){
+  var p={model:'',installed:{}};
+  try{
+    var raw=localStorage.getItem(OTA_PREFS_KEY);
+    if(!raw) return p;
+    var saved=JSON.parse(raw);
+    if(saved.model==='VX4'||saved.model==='VX8') p.model=saved.model;
+    if(saved.installed&&typeof saved.installed==='object') p.installed=saved.installed;
+  }catch(e){}
+  return p;
+}
+function saveOtaPrefs(){
+  try{
+    localStorage.setItem(OTA_PREFS_KEY,JSON.stringify({
+      model:S.ota.model,installed:S.ota.installed
+    }));
+  }catch(e){}
+}
 var S={info:{},on:true,bri:184,col:BLACK.slice(),fx:0,eff:null,
   outs:[],net:{},ap:{},startup:null,view:'home',test:null,
-  live:false,liveMode:'',liveIp:'',liveOverride:0};
+  live:false,liveMode:'',liveIp:'',liveOverride:0,ota:loadOtaPrefs(),otaAvailable:null};
 var pct=function(){return Math.round(S.bri/255*100)};
 var totalPx=function(){return S.outs.reduce(function(a,o){return a+o.len},0)};
 var totalA=function(){return S.outs.reduce(function(a,o){return a+ampsOf(o)},0)};
 function blackPayload(){
-  return {on:true,bri:S.bri,
-    seg:[{fx:0,pal:0,col:[BLACK.slice(),BLACK.slice(),BLACK.slice()]}]};
+  var segment={id:0,fx:0,pal:0,col:[BLACK.slice(),BLACK.slice(),BLACK.slice()]};
+  var pixels=totalPx();
+  if(pixels>0){ segment.start=0; segment.stop=pixels }
+  return {on:true,bri:S.bri,seg:[segment]};
 }
 function setBlackLocal(){
   S.on=true; S.fx=0; S.col=BLACK.slice();
@@ -575,10 +939,17 @@ function persistStartupBrightness(){
 }
 function syncLive(st,info){
   st=st||{}; info=info||{};
+  syncOutputLevels(st);
+  if(st.masterBri!=null) st.bri=st.masterBri;
+  if(st.outputPower!=null) st.on=st.outputPower;
   S.live=!!info.live;
   S.liveMode=info.lm||'';
   S.liveIp=info.lip||'';
   S.liveOverride=st.lor==null?0:Number(st.lor)||0;
+  if(S.live&&S.liveOverride===0){
+    if(st.bri!=null) S.bri=Number(st.bri)||0;
+    if(st.on!=null) S.on=!!st.on;
+  }
 }
 function liveNodeName(){
   var n=(S.info.name||'').trim();
@@ -595,6 +966,24 @@ function paintLive(){
   var detail=S.liveMode||'Live data';
   if(S.liveIp) detail+=' · '+S.liveIp;
   $('#liveMode').textContent=detail;
+  paintLiveControls();
+}
+function paintLiveControls(){
+  var level=Math.round(S.bri/255*100), range=$('#liveBri'), power=$('#livePower');
+  if(range) range.value=level;
+  $('#liveBriVal').textContent=level+'%';
+  power.classList.toggle('on',S.on);
+  power.classList.toggle('off',!S.on);
+  power.setAttribute('aria-label',S.on?'Turn live output off':'Turn live output on');
+  power.title=S.on?'Turn live output off':'Turn live output on';
+}
+function setLiveBrightness(percent){
+  percent=clamp(Number(percent)||0,0,100);
+  S.bri=Math.round(percent*255/100);
+  paintLiveControls(); paintPower();
+  push('liveBri',function(){
+    return api.setState({bri:S.bri,tt:0,lor:0});
+  },60);
 }
 function overrideLive(){
   var previous=S.liveOverride;
@@ -615,6 +1004,23 @@ function resumeLive(){
 }
 $('#liveOverride').onclick=overrideLive;
 $('#hLiveResume').onclick=resumeLive;
+$('#liveOutputs').onclick=function(){
+  sheet('Output brightness',S.outs.map(function(output,i){
+    return '<button class="row" data-live-output="'+i+'">Output '+pad2(i+1)+' · '+Math.round(outputLevel(output)/255*100)+'%'+(output.briLock?' · Locked':'')+'</button>';
+  }).join('')+'<button class="btn" id="liveLockAll">Lock all brightnesses</button>',function(){
+    $$('[data-live-output]').forEach(function(button){button.onclick=function(){sheetOutputBrightness(+button.dataset.liveOutput)}});
+    $('#liveLockAll').onclick=function(){sheetOutputBrightness(-1)};
+  });
+};
+$('#liveBri').oninput=function(){setLiveBrightness(this.value)};
+$('#livePower').onclick=function(){
+  S.on=!S.on;
+  if(S.on&&S.bri<8) S.bri=128;
+  paintLiveControls(); paintPower();
+  push('livePower',function(){
+    return api.setState(S.on?{on:true,bri:S.bri,lor:0}:{on:false,lor:0});
+  },80);
+};
 function uniCount(){
   var ch=0; S.outs.forEach(function(o){ ch+=o.len*(typeOf(o.type).w?4:3) });
   return Math.max(1,Math.ceil(ch/510));
@@ -641,6 +1047,15 @@ var TESTS=[
   {k:'green',n:'Green',c:[0,255,0]},
   {k:'blue',n:'Blue',c:[0,0,255]},
   {k:'warm',n:'Warm',c:[255,147,41]},
+  /* AI: below section was generated by an AI */
+  // WLED's Sine effect (108) uses palette 2, Color 1, to keep the waves monochrome.
+  {k:'magenta',n:'Solid magenta',c:[255,0,255]},
+  {k:'wavy-magenta',n:'Wavy magenta',c:[255,0,255],fx:108,sx:128,ix:64,pal:2,
+   hint:'magenta waves travelling along every output'},
+  {k:'teal',n:'Solid teal',c:[0,128,128]},
+  {k:'wavy-teal',n:'Wavy teal',c:[0,128,128],fx:108,sx:128,ix:64,pal:2,
+   hint:'teal waves travelling along every output'},
+  /* AI: end */
   {k:'rainbow',n:'Rainbow',c:[255,0,0],fx:9,sx:150,g:SPECTRUM,
    hint:'hues spread along the run and travelling - shows up gaps and dead sections'},
   {k:'scroll',n:'Color scroll',c:[255,0,0],fx:8,sx:36,cycle:1,
@@ -652,7 +1067,36 @@ function statCell(k,v,u,hot){
   return '<div><div class="k">'+k+'</div><div class="v'+(hot?' hot':'')+'">'+v+
     (u?'<i>'+u+'</i>':'')+'</div></div>';
 }
+function editableStatCell(id,label,value,aria){
+  return '<button class="stat-edit" id="'+id+'" aria-label="'+aria+'">'+
+    '<svg viewBox="0 0 24 24"><path d="m4 16-.7 4.7L8 20l11-11-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/></svg>'+
+    '<div class="k">'+label+'</div><div class="v">'+esc(value||'-')+'</div></button>';
+}
+function universeStatCell(){
+  var start=S.net.uni||1, count=uniCount(), next=start+count;
+  if(!S.net.uniSet){
+    return '<button class="stat-edit unset" id="homeUniverse" aria-label="Set start universe">'+
+      '<svg viewBox="0 0 24 24"><path d="m4 16-.7 4.7L8 20l11-11-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/></svg>'+
+      '<div class="set-title">Set universe</div><span class="set-hint">Required for network control</span></button>';
+  }
+  return '<button class="stat-edit" id="homeUniverse" aria-label="Edit start universe">'+
+    '<svg viewBox="0 0 24 24"><path d="m4 16-.7 4.7L8 20l11-11-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/></svg>'+
+    '<div class="k">Start universe</div><div class="v">U'+start+'</div>'+
+    '<span class="universe-count">Uses '+count+' universe'+(count===1?'':'s')+'</span>'+
+    '<span class="next available">Next available U'+next+'</span></button>';
+}
+function ipStatCell(){
+  var isStatic=S.net.dhcp===false;
+  return '<button class="stat-edit" id="homeIp" aria-label="Edit IP configuration">'+
+    '<svg viewBox="0 0 24 24"><path d="m4 16-.7 4.7L8 20l11-11-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/></svg>'+
+    '<div class="k">IP address</div><div class="v">'+esc(S.info.ip||'-')+'</div>'+
+    '<span class="next'+(isStatic?' static':'')+'">'+(isStatic?'Static':'Automatic (DHCP)')+'</span></button>';
+}
 function renderHome(){
+  /* AI: below section was generated by an AI */
+  document.title=(S.info.name||'Loomx')+' · Loomx';
+  /* AI: end */
+  $('#homeNodeName').textContent=S.info.name||'Loomx';
   $('#briVal').innerHTML=pct()+'<i>%</i>';
   setKnob(pct()); paintFill();
   paintPower();
@@ -660,12 +1104,21 @@ function renderHome(){
   $('#upStr').textContent='up '+(d?d+' d '+h+' h':h+' h');
 
   $('#statGrid').innerHTML=
-    statCell('Total pixels',totalPx().toLocaleString(),'')+
-    statCell('Full-white draw',totalA().toFixed(1),'A',totalA()>15)+
-    statCell('Outputs in use',S.outs.filter(function(o){return o.len>0}).length+' of '+S.outs.length,'')+
-    statCell('Protocol',S.net.proto||'-','')+
-    statCell('Universes',String(uniCount()),'')+
-    statCell('Start universe','U'+(S.net.uni||1),'');
+    '<div class="node-group config"><div class="node-group-label">Configuration</div><div class="stats">'+
+      editableStatCell('homeBoardType','Board type',S.ota.model||S.info.release||'-','Edit board type')+
+      ipStatCell()+
+      editableStatCell('homeProtocol','Protocol',S.net.proto||'-','Edit network protocol')+
+      universeStatCell()+'</div></div>'+
+    '<div class="node-group"><div class="node-group-label">Status</div><div class="stats">'+
+      statCell('Network',S.info.ethernetConnected?'Ethernet':S.info.wifiConnected?'Wi-Fi':S.info.ap?'Access point':'Offline','')+
+      statCell('Total pixels',totalPx().toLocaleString(),'')+
+      statCell('Full-white draw',totalA().toFixed(1),'A',totalA()>15)+
+      statCell('Outputs in use',S.outs.filter(function(o){return o.len>0}).length+' of '+S.outs.length,'')+
+    '</div></div>';
+  $('#homeBoardType').onclick=sheetControllerType;
+  $('#homeProtocol').onclick=sheetProto;
+  $('#homeUniverse').onclick=sheetUniverse;
+  $('#homeIp').onclick=sheetNetworkAddress;
 
   $('#testChips').innerHTML=TESTS.map(function(t){
     var live=S.test===t.k, cyc=!!t.cycle;
@@ -682,21 +1135,83 @@ function renderHome(){
     '<span class="bar'+(w>15?' hot':'')+'"><i style="width:'+clamp(w/25*100,2,100)+'%"></i></span>'+
     '<span>25 A supply</span>';
 
-  $('#homeOuts').innerHTML=S.outs.map(function(o,i){
+  $('#homeOuts').innerHTML='<button class="btn" id="lockAllOutputs">Lock all brightnesses</button>'+S.outs.map(function(o,i){
     return '<button class="row" data-o="'+i+'"><div class="rl"><b>Output '+pad2(i+1)+'</b>'+
       '<small>'+o.len+' px &middot; '+esc(o.order)+' &middot; GPIO '+o.pin+'</small></div>'+
-      '<span class="rv">'+ampsOf(o).toFixed(1)+' A</span><span class="chev">&rsaquo;</span></button>';
+      '<span class="rv">'+Math.round(outputLevel(o)/255*100)+'% · '+(o.briLock?'Locked':'Unlocked')+'</span><span class="chev">&rsaquo;</span></button>';
   }).join('');
-  $$('#homeOuts .row').forEach(function(b){ b.onclick=function(){go('out')} });
+  $$('#homeOuts .row').forEach(function(b){ b.onclick=function(){sheetOutputBrightness(+b.dataset.o)} });
+  $('#lockAllOutputs').onclick=function(){sheetOutputBrightness(-1)};
 
   var f='Built on <a href="https://github.com/wled/WLED" target="_blank" rel="noopener">WLED</a> '+
     esc(S.info.ver||'')+(MOCK?' &middot; demo data':'');
   $('#foot').innerHTML=f; $('#foot2').innerHTML=f;
 }
+/* AI: below section was generated by an AI */
+function outputLevel(output){return output.bri==null?255:clamp(Math.round(Number(output.bri)||0),0,255)}
+function syncOutputLevels(state){
+  if(!state||!Array.isArray(state.outputBri)) return;
+  state.outputBri.forEach(function(value,i){
+    if(!S.outs[i]) return;
+    S.outs[i].bri=clamp(Number(value.bri)||0,0,255);
+    S.outs[i].briLock=!!value.lock;
+  });
+}
+// Locked edits always ask for the hardware PIN, even if settings were unlocked before.
+function sheetOutputBrightness(index){
+  var all=index<0, output=all?null:S.outs[index];
+  if(!all&&!output) return;
+  var originalLock=all?false:!!output.briLock;
+  sheet(all?'Lock all brightnesses':'Output '+pad2(index+1)+' brightness',
+    '<p class="dim">'+(all?'Hold every output at its current brightness. Master brightness will no longer change these levels.':
+      'Unlocked levels scale with the master. Locking holds the current output level independently of the master.')+'</p>'+
+    (all?'':'<div class="fldrow"><label class="lbl" for="outputPercent">Brightness (%)</label>'+
+      '<input class="inp" id="outputPercent" type="number" min="0" max="100" step="1" value="'+Math.round(outputLevel(output)/255*100)+'"></div>'+
+      '<input class="live-range" id="outputRange" aria-label="Output brightness" type="range" min="0" max="100" value="'+Math.round(outputLevel(output)/255*100)+'">'+
+      '<label class="fldrow"><span>Lock brightness</span><input id="outputLocked" type="checkbox"'+(originalLock?' checked':'')+'></label>')+
+    '<div id="outputPinRow" class="fldrow"><label class="lbl" for="outputPin">Hardware password (PIN)</label>'+
+      '<input class="inp" id="outputPin" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></div>'+
+    '<div class="field-error" id="outputError" role="alert"></div>'+
+    '<div class="pwr"><button class="btn" id="outputCancel">Cancel</button><button class="btn pri" id="outputSave">'+(all?'Lock all':'Apply')+'</button></div>',
+    function(){
+      var edited=false;
+      function needsPin(){return all||originalLock||$('#outputLocked').checked!==originalLock}
+      function pinVisibility(){$('#outputPinRow').style.display=needsPin()?'':'none'}
+      pinVisibility();
+      if(!all){
+        $('#outputRange').oninput=function(){edited=true;$('#outputPercent').value=this.value};
+        $('#outputPercent').oninput=function(){edited=true;$('#outputRange').value=clamp(Number(this.value)||0,0,100)};
+        $('#outputLocked').onchange=pinVisibility;
+      }
+      $('#outputCancel').onclick=closeSheet;
+      $('#outputSave').onclick=function(){
+        var button=this, pin=needsPin()?$('#outputPin').value:null, entries;
+        if(needsPin()&&!/^\d{4}$/.test(pin)){$('#outputError').textContent='Enter your four-digit hardware PIN.';return}
+        if(all) entries=S.outs.map(function(o,i){return {id:i,lock:true}});
+        else{
+          var percent=Number($('#outputPercent').value);
+          if(!Number.isFinite(percent)||percent<0||percent>100){$('#outputError').textContent='Enter a brightness from 0 to 100.';return}
+          var entry={id:index,lock:$('#outputLocked').checked};
+          // A lock-only change captures the driver's current level without a jump.
+          if(edited) entry.bri=Math.round(percent*255/100);
+          entries=[entry];
+        }
+        button.disabled=true;
+        api.setOutputLevels(entries,pin).then(function(){
+          closeSheet();renderHome();renderOuts();flashSaved();
+        }).catch(function(error){
+          $('#outputError').textContent='Could not save brightness. Check your hardware PIN and connection.';
+          button.disabled=false;
+        });
+      };
+    });
+}
+/* AI: end */
 function pad2(n){return n<10?'0'+n:''+n}
 function paintPower(){
   var b=$('#btnPwr'); if(!b) return;
-  b.textContent=S.on?'Turn off':'Turn on';
+  b.setAttribute('aria-label',S.on?'Turn off':'Turn on');
+  b.title=S.on?'Turn off':'Turn on';
   b.classList.toggle('lit',S.on);
   b.classList.toggle('dark',!S.on);
   $('#briCard').classList.toggle('dark',!S.on);
@@ -704,9 +1219,9 @@ function paintPower(){
 /* The bar is not decoration - it is the colour the run is showing, moving the way
    the run is moving. Anything unrecognised still animates, because something is. */
 var FXNAME={0:'Solid',1:'Blink',2:'Breathe',3:'Wipe',8:'Colorloop',9:'Rainbow',
-  12:'Fade',23:'Strobe',28:'Chase',63:'Pride',67:'Colorwaves'};
+  12:'Fade',23:'Strobe',28:'Chase',63:'Pride',67:'Colorwaves',108:'Sine'};
 var FXBAR={0:'solid',1:'blink',2:'breathe',3:'sweep',8:'cycle',9:'spectrum',
-  12:'breathe',23:'blink',28:'chase',63:'spectrum',67:'spectrum'};
+  12:'breathe',23:'blink',28:'chase',63:'spectrum',67:'spectrum',108:'sweep'};
 function barKind(fx){ return FXBAR[fx]||(fx?'sweep':'solid') }
 function fxName(fx){ return (S.eff&&S.eff[fx])||FXNAME[fx]||('Effect '+fx) }
 function testOf(k){ var r=null; TESTS.forEach(function(t){ if(t.k===k) r=t }); return r }
@@ -751,12 +1266,11 @@ function setKnob(p){
     var r=el.getBoundingClientRect();
     var cx=e.touches?e.touches[0].clientX:e.clientX;
     var p=clamp(Math.round((cx-r.left)/r.width*100),0,100);
-    S.bri=Math.round(p*255/100); S.on=p>0;
-    if(S.on&&!S.test) setBlackLocal();
+    S.bri=Math.round(p*255/100);
     $('#briVal').innerHTML=p+'<i>%</i>'; setKnob(p); paintPower();
     push('bri',function(){
-      return api.setState(S.on&&!S.test?blackPayload():{on:S.on,bri:S.bri});
-    },120);
+      return api.setState({bri:S.bri,tt:0});
+    },60);
   }
   el.addEventListener('pointerdown',function(e){drag=true;set(e);e.preventDefault()});
   el.addEventListener('pointermove',function(e){if(drag)set(e)});
@@ -785,12 +1299,52 @@ function toggleTest(k){
   $('#tbarT').textContent=t.n+' test running';
   $('#tbarS').textContent=t.hint||'all outputs, solid';
   return api.setState({on:true,bri:S.bri,
-    seg:[{fx:t.fx||0,sx:t.sx==null?128:t.sx,ix:t.ix==null?128:t.ix,pal:0,
+    seg:[{fx:t.fx||0,sx:t.sx==null?128:t.sx,ix:t.ix==null?128:t.ix,pal:t.pal||0,
       col:[t.c,[0,0,0],[0,0,0]]}]}).then(renderHome,renderHome);
 }
 function stopTest(){
   var done=function(){renderHome()};
   return resumeBlack().then(done,done);
+}
+var outputTestToken=0;
+function testOutput(i){
+  var output=S.outs[i];
+  if(!output||output.len<1) return Promise.resolve();
+  var token=++outputTestToken;
+  var start=0;
+  for(var n=0;n<i;n++) start+=S.outs[n].len;
+  var stop=start+output.len;
+  $$('[data-testout]').forEach(function(item){
+    item.disabled=false;
+    item.textContent='Test output';
+  });
+  var button=$('[data-testout="'+i+'"]');
+  if(button){ button.disabled=true; button.textContent='Testing…' }
+  S.test='output-'+i;
+  function show(color){
+    if(token!==outputTestToken) return Promise.resolve();
+    return api.setState({on:true,bri:Math.max(S.bri,128),seg:[{
+      id:0,start:start,stop:stop,fx:0,pal:0,
+      col:[color.slice(),BLACK.slice(),BLACK.slice()]
+    }]});
+  }
+  var sequence=api.setState(blackPayload());
+  for(var blink=0;blink<6;blink++){
+    sequence=sequence.then(function(){return show([255,255,255])})
+      .then(function(){return wait(250)})
+      .then(function(){return show(BLACK)})
+      .then(function(){return wait(250)});
+  }
+  function finish(){
+    if(token!==outputTestToken) return;
+    S.test=null;
+    function restoreButton(){
+      var current=$('[data-testout="'+i+'"]');
+      if(current){ current.disabled=false; current.textContent='Test output' }
+    }
+    return resumeBlack().then(restoreButton,restoreButton);
+  }
+  return sequence.then(finish,finish);
 }
 $('#tbarStop').onclick=stopTest;
 $('#hId').onclick=function(){
@@ -820,7 +1374,7 @@ function addOutput(){
   var p=freePin(); if(p===null) return Promise.resolve();
   var prev=S.outs[S.outs.length-1]||{len:100,type:TYPES[0].n,order:'GRB'};
   /* inherit the previous run — on site the next output is usually the same part */
-  S.outs.push({len:prev.len,type:prev.type,order:prev.order,pin:p});
+  S.outs.push({len:prev.len,type:prev.type,order:prev.order,bri:255,briLock:false,pin:p});
   return api.writeBuses().then(function(){
     flashSaved(); renderOuts(); renderHome();
   },function(){});
@@ -893,6 +1447,10 @@ function drawRow(o){
   '</div>';
 }
 function renderOuts(){
+  /* Status polling may repaint the current view while an operator is typing.
+     Do not replace the focused input DOM node or the phone keyboard closes. */
+  var active=document.activeElement;
+  if(active&&active.matches&&active.matches('#outList [data-len]')) return;
   var n=S.outs.length, canAdd=n<MAXOUT&&freePin()!==null;
   $('#outCount').innerHTML=
     '<span class="lbl">Number of outputs</span>'+
@@ -909,10 +1467,11 @@ function renderOuts(){
     statCell('Full-white draw',totalA().toFixed(1),'A',totalA()>15);
 
   $('#outList').innerHTML=S.outs.map(function(o,i){
-    var t=typeOf(o.type), list=t.w?ORDERS_W:ORDERS;
+    var t=typeOf(o.type), list=orderChoices(t.w);
     return '<div class="out">'+
       '<div class="oh"><b>OUTPUT '+pad2(i+1)+'</b>'+
         '<span class="gp">GPIO '+o.pin+'</span>'+
+        '<button class="out-test" data-testout="'+i+'">Test output</button>'+
         (S.outs.length>1?'<button class="del" data-del="'+i+'" aria-label="Delete output">'+
           '<svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M8 7l.7 12h6.6L16 7"/></svg></button>':'')+
       '</div>'+
@@ -927,14 +1486,14 @@ function renderOuts(){
           '<label class="fld"><span class="lbl">LED type</span><select class="sel" data-type="'+i+'">'+
             TYPES.map(function(x){return '<option'+(x.n===o.type?' selected':'')+'>'+x.n+'</option>'}).join('')+
           '</select></label>'+
-          '<label class="fld"><span class="lbl">Color order</span><select class="sel" data-order="'+i+'">'+
+          '<div class="fld"><span class="lbl">Color order</span><div class="order-control"><select class="sel" data-order="'+i+'">'+
             list.map(function(x){return '<option'+(x===o.order?' selected':'')+'>'+x+'</option>'}).join('')+
-          '</select></label>'+
+          '</select>'+
+          '<button class="detect-order" data-cal="'+i+'" aria-label="Detect color order" title="Detect color order">'+
+            '<svg viewBox="0 0 24 24"><path d="M4 12h3M17 12h3M12 4v3M12 17v3"/>'+
+            '<circle cx="12" cy="12" r="3.2"/></svg></button></div></div>'+
         '</div>'+
-        '<button class="detect" data-cal="'+i+'">'+
-          '<svg viewBox="0 0 24 24"><path d="M4 12h3M17 12h3M12 4v3M12 17v3"/>'+
-          '<circle cx="12" cy="12" r="3.2"/></svg>Detect color order'+
-          '<em>&nbsp;&middot; not sure?</em></button>'+
+        '<button class="btn" data-brightness="'+i+'">Brightness '+Math.round(outputLevel(o)/255*100)+'%'+(o.briLock?' · Locked':'')+'</button>'+
         drawRow(o)+
       '</div></div>';
   }).join('')+
@@ -946,42 +1505,67 @@ function renderOuts(){
     b.onclick=function(e){ e.stopPropagation(); removeOutput(+b.dataset.del) };
   });
 
-  /* hold to repeat, accelerating - 300 px one tap at a time is cruel */
+  /* One step per press keeps rapid touch/click sequences deterministic. The
+     numeric field remains available for large changes. */
   $$('#outList .step button').forEach(function(b){
-    var i=+b.dataset.i, d=+b.dataset.d, t1, t2, n=0;
-    function bump(){
+    var i=+b.dataset.i, d=+b.dataset.d, lastPress=0;
+    b.addEventListener('click',function(e){
+      var now=Date.now();
+      e.preventDefault();
+      if(now-lastPress<140) return;
+      lastPress=now;
       var o=S.outs[i];
-      o.len=clamp(o.len+d*(n>18?10:1),0,2000); n++;
+      if(!o) return;
+      o.len=clamp(o.len+d,0,2000);
       var f=$('[data-len="'+i+'"]'); if(f) f.value=o.len;
       liveOut(i);
       push('len'+i,function(){return api.setBus(i,{len:o.len})});
-    }
-    b.addEventListener('pointerdown',function(e){
-      e.preventDefault(); n=0; bump();
-      t1=setTimeout(function(){ t2=setInterval(bump,60) },380);
-    });
-    ['pointerup','pointerleave','pointercancel'].forEach(function(ev){
-      b.addEventListener(ev,function(){ clearTimeout(t1); clearInterval(t2) });
     });
   });
   $$('#outList [data-len]').forEach(function(f){
+    var i=+f.dataset.len;
+    function applyTypedCount(commit){
+      var digits=f.value.replace(/[^0-9]/g,'');
+      if(f.value!==digits) f.value=digits;
+      if(!digits){
+        if(commit) f.value=S.outs[i].len;
+        return;
+      }
+      var value=clamp(parseInt(digits,10),0,2000);
+      if(value!==parseInt(digits,10)) f.value=value;
+      S.outs[i].len=value;
+      liveOut(i);
+      push('len'+i,function(){return api.setBus(i,{len:S.outs[i].len})},commit?80:550);
+    }
     f.onfocus=function(){f.select()};
-    f.onchange=function(){
-      var i=+f.dataset.len;
-      S.outs[i].len=clamp(parseInt(f.value.replace(/[^0-9]/g,''),10)||0,0,2000);
-      f.value=S.outs[i].len; renderOuts();
-      push('len'+i,function(){return api.setBus(i,{len:S.outs[i].len})},80);
+    f.oninput=function(){applyTypedCount(false)};
+    f.onblur=function(){applyTypedCount(true)};
+    f.onkeydown=function(e){
+      if(e.key==='Enter'){
+        e.preventDefault();
+        applyTypedCount(true);
+      }
     };
   });
   $$('#outList [data-type]').forEach(function(f){
     f.onchange=function(){
-      var i=+f.dataset.type, t=typeOf(f.value), o=S.outs[i];
-      o.type=f.value;
+      var i=+f.dataset.type, selectedType=f.value, t=typeOf(selectedType), o=S.outs[i];
+      o.type=selectedType;
       /* an RGBW part needs a 4-letter order - carry the hue order across */
       var base=o.order.replace('W','');
       o.order=t.w?base+'W':base;
-      renderOuts();
-      push('type'+i,function(){return api.setBus(i,{type:o.type,order:o.order})},80);
+      /* Keep the native select alive while its mobile change event finishes.
+         Replacing the whole card here can cancel an RGBW-to-RGB selection. */
+      var order=$('[data-order="'+i+'"]'), selectedOrder=o.order;
+      if(order){
+        order.innerHTML=orderChoices(t.w).map(function(value){
+          return '<option'+(value===selectedOrder?' selected':'')+'>'+value+'</option>';
+        }).join('');
+      }
+      liveOut(i);
+      push('type'+i,function(){
+        return api.setBus(i,{type:selectedType,order:selectedOrder});
+      },80);
     };
   });
   $$('#outList [data-order]').forEach(function(f){
@@ -992,6 +1576,12 @@ function renderOuts(){
   });
   $$('#outList [data-cal]').forEach(function(b){
     b.onclick=function(){ calibrate(+b.dataset.cal) };
+  });
+  $$('#outList [data-brightness]').forEach(function(b){
+    b.onclick=function(){sheetOutputBrightness(+b.dataset.brightness)};
+  });
+  $$('#outList [data-testout]').forEach(function(b){
+    b.onclick=function(){ testOutput(+b.dataset.testout) };
   });
 }
 /* refresh only the numbers while a stepper is held down */
@@ -1019,7 +1609,7 @@ function closeSheet(){
 $('#shX').onclick=closeSheet; $('#scrim').onclick=closeSheet;
 
 function sheetGlobal(){
-  var t=typeOf(S.outs[0].type), list=t.w?ORDERS_W:ORDERS;
+  var t=typeOf(S.outs[0].type), list=orderChoices(t.w);
   sheet('Apply to all outputs',
     '<div class="note w"><i></i><span>This overwrites type and color order on all '+S.outs.length+
       ' outputs. Pixel counts are left alone.</span></div>'+
@@ -1035,7 +1625,7 @@ function sheetGlobal(){
       'Calibrate output 01 and copy to all</button></div>',
   function(){
     $('#gType').onchange=function(){
-      var t2=typeOf($('#gType').value), l2=t2.w?ORDERS_W:ORDERS;
+      var t2=typeOf($('#gType').value), l2=orderChoices(t2.w);
       $('#gOrder').innerHTML=l2.map(function(x){return '<option>'+x+'</option>'}).join('');
     };
     $('#gCancel').onclick=closeSheet;
@@ -1172,11 +1762,26 @@ function calibrate(idx,toAll){
 /* ------------------------------------------------------------------- setup */
 function bars(r){ var n=r>-60?4:r>-70?3:r>-80?2:1; return '▂▄▆█'.slice(0,n) }
 function renderSetup(){
-  var ap=S.info.ap;
+  var connected=S.info.wifiConnected,ap=S.info.ap,saved=S.info.savedSsid;
+  var ethernet=S.info.ethernetConnected||S.info.mode==='ethernet';
+  var wifiDetail=connected?('Connected to '+(S.info.ssid||saved||'Wi-Fi'))
+    :ap?('AP mode · broadcasting '+S.ap.ssid+(saved?' · '+saved+' unavailable':''))
+    :saved?('Trying saved network '+saved):'No saved network';
+  var wifiValue=connected?(bars(S.info.rssi)+' '+S.info.rssi+' dBm')
+    :ap?'AP mode':saved?'Connecting':'Not joined';
+  $('#setIdentity').innerHTML=
+    '<button class="row" id="rName"><div class="rl"><b>Node name</b>'+
+      '<small>Shown in browsers and controller apps</small></div><span class="rv">'+esc(S.info.name)+
+      '</span><span class="chev">&rsaquo;</span></button>'+
+    '<button class="row" id="rModel"><div class="rl"><b>Controller type</b>'+
+      '<small>Select the firmware made for this controller</small></div><span class="rv">'+
+      esc(S.ota.model||'Choose')+'</span><span class="chev">&rsaquo;</span></button>';
   $('#setNet').innerHTML=
+    (ethernet?'<div class="row"><div class="rl"><b>Ethernet</b><small>Connected via Ethernet</small></div>'+
+      '<span class="rv">'+esc(S.info.ip||'-')+'</span></div>':'')+
     '<button class="row" id="rWifi"><div class="rl"><b>'+(ap?'Access point':'Wi-Fi')+'</b>'+
-      '<small>'+(ap?'Broadcasting '+esc(S.ap.ssid):esc(S.info.ssid||'Not joined'))+'</small></div>'+
-      '<span class="rv">'+(ap?'Not joined':bars(S.info.rssi)+' '+(S.info.rssi||'')+' dBm')+
+      '<small>'+esc(wifiDetail)+'</small></div>'+
+      '<span class="rv">'+esc(wifiValue)+
       '</span><span class="chev">&rsaquo;</span></button>'+
     '<button class="row" id="rAp"><div class="rl"><b>Access point</b>'+
       '<small>Fallback when there is no Wi-Fi</small></div><span class="rv">'+esc(S.ap.ssid)+
@@ -1195,20 +1800,23 @@ function renderSetup(){
       '<small>Apply one setting to every output</small></div><span class="rv">'+esc(S.outs[0].order)+
       '</span><span class="chev">&rsaquo;</span></button>';
   $('#setNode').innerHTML=
-    '<button class="row" id="rName"><div class="rl"><b>Node name</b>'+
-      '<small>Shown in Loomx Ctrl</small></div><span class="rv">'+esc(S.info.name)+
-      '</span><span class="chev">&rsaquo;</span></button>'+
-    '<button class="row" id="rFw"><div class="rl"><b>Update firmware</b><small>'+
-      esc(S.info.arch||'esp32')+' &middot; currently WLED '+esc(S.info.ver||'')+'</small></div>'+
+    '<button class="row" id="rFw"><div class="rl"><b>OTA updates</b><small>'+
+      otaCurrentVersion()+' &middot; '+
+      'Ready to check Supabase'+
+      '</small></div><span class="rv">'+
+      'Update'+'</span><span class="chev">&rsaquo;</span></button>'+
+    '<button class="row" id="rBackup"><div class="rl"><b>Backup and restore</b>'+
+      '<small>Download or upload configuration and presets</small></div><span class="chev">&rsaquo;</span></button>'+
+    '<button class="row" id="rPin"><div class="rl"><b>Settings PIN</b>'+
+      '<small>Protect configuration and password backups</small></div><span class="rv">4 digits</span>'+
       '<span class="chev">&rsaquo;</span></button>'+
-    '<button class="row" id="rBackup"><div class="rl"><b>Export configuration</b>'+
-      '<small>Download node settings and presets</small></div><span class="chev">&rsaquo;</span></button>'+
     '<button class="row" id="rAdv"><div class="rl"><b>Everything else</b>'+
       '<small>Opens the full WLED settings</small></div><span class="chev">&rsaquo;</span></button>';
   $('#rWifi').onclick=sheetWifi; $('#rAp').onclick=sheetAp;
   $('#rProto').onclick=sheetProto; $('#rPorts').onclick=sheetPorts;
   $('#rGlobal').onclick=sheetGlobal; $('#rName').onclick=sheetName;
-  $('#rFw').onclick=sheetFirmware; $('#rBackup').onclick=sheetBackup;
+  $('#rModel').onclick=sheetControllerType;
+  $('#rFw').onclick=sheetFirmware; $('#rBackup').onclick=sheetBackup; $('#rPin').onclick=sheetSettingsPin;
   $('#rAdv').onclick=function(){
     if(MOCK) sheet('Full WLED settings',
       '<div class="note w"><i></i><span>On a real node this opens <b>/settings</b> &mdash; the stock WLED pages, '+
@@ -1222,11 +1830,19 @@ function sheetWifi(){
     'padding:22px 4px;color:var(--t3);font-size:13.5px"><span class="spin"></span>'+
     'Looking for networks...</div></div>',
   function(){
+    var body=$('#wifiBody');
     api.scan().then(function(list){
-      var body=$('#wifiBody'); if(!body) return;
+      if($('#wifiBody')!==body) return;
+      var notice=S.info.wifiConnected?
+        '<div class="note o"><i></i><span>Connected to <b>'+esc(S.info.ssid||S.info.savedSsid)+
+          '</b> at '+esc(S.info.ip)+'</span></div>':
+        S.info.ap?'<div class="note w"><i></i><span><b>Access point mode is active</b>'+
+          (S.info.savedSsid?'The saved network '+esc(S.info.savedSsid)+' could not be reached. ':'')+
+          'The controller will keep trying Wi-Fi in the background.</span></div>':
+        S.info.savedSsid?'<div class="note w"><i></i><span><b>Trying '+esc(S.info.savedSsid)+
+          '</b>The controller will return to access point mode if it cannot connect.</span></div>':'';
       body.innerHTML=
-        ((S.info.ssid&&!S.info.ap)?'<div class="note o"><i></i><span>Joined to <b>'+esc(S.info.ssid)+
-          '</b> at '+esc(S.info.ip)+'</span></div>':'')+
+        notice+(list.length?'':'<div class="note w"><i></i><span>No networks found. Scan again or enter a network name.</span></div>')+
         '<div style="margin-top:6px">'+list.slice().sort(function(a,b){return b.rssi-a.rssi})
         .map(function(n){
           var lv=n.rssi>-60?4:n.rssi>-70?3:n.rssi>-80?2:1;
@@ -1238,13 +1854,30 @@ function sheetWifi(){
               return '<i class="'+(lv>=k?'on':'')+'" style="height:'+(4+k*2.5)+'px"></i>' }).join('')+
             '</span></button>';
         }).join('')+'</div>'+
-        '<div class="fldrow"><button class="btn quiet" style="width:100%" id="wRescan">Scan again</button></div>';
+        '<div class="fldrow"><button class="btn quiet" style="width:100%" id="wRescan">Scan again</button></div>'+
+        '<div class="fldrow"><button class="btn quiet" style="width:100%" id="wManual">Other network...</button></div>';
       $$('#wifiBody .wifi').forEach(function(b){
         b.onclick=function(){ wifiJoin(b.dataset.s,b.dataset.l==='1') } });
       $('#wRescan').onclick=sheetWifi;
+      $('#wManual').onclick=wifiManual;
+    }).catch(function(error){
+      if($('#wifiBody')!==body) return;
+      body.innerHTML='<div class="note w"><i></i><span>'+esc(error.message)+'</span></div>'+
+        '<div class="fldrow"><button class="btn pri" id="wRetry">Try again</button></div>';
+      $('#wRetry').onclick=sheetWifi;
     });
   });
 }
+/* AI: below section was generated by an AI */
+// Hidden networks and an empty scan can still be configured explicitly.
+function wifiManual(){
+  sheet('Other network','<div class="fldrow"><span class="lbl">Network name</span>'+
+    '<input class="inp" id="wSsid" maxlength="32"></div>'+
+    '<button class="btn pri" id="wNext">Next</button>',function(){
+      $('#wNext').onclick=function(){var ssid=$('#wSsid').value;if(ssid) wifiJoin(ssid,true)};
+    });
+}
+/* AI: end */
 function wifiJoin(ssid,lock){
   sheet(ssid,
     (lock?'<div class="fldrow"><span class="lbl">Password</span>'+
@@ -1270,31 +1903,24 @@ function wifiJoin(ssid,lock){
         '<div style="display:flex;align-items:center;gap:10px;justify-content:center;color:var(--t2);'+
         'font-size:14px;padding:20px 0"><span class="spin"></span>Joining and reading the network...</div></div>');
       api.join(ssid,p?p.value:'').then(function(){
-        S.info.ssid=ssid; S.info.ap=false;
-        var g=MOCK?{gw:'192.168.1.1',mask:'255.255.255.0',ip:'192.168.1.42'}
-                  :{gw:S.net.gw||'-',mask:S.net.mask||'-',ip:S.info.ip};
-        sheet('Joined',
-          '<div class="note o"><i></i><span><b>On '+esc(ssid)+'</b>Gateway and subnet were picked up '+
-            'automatically.</span></div>'+
-          '<div class="rows" style="margin-top:10px">'+
-            '<div class="row"><div class="rl"><b>IP address</b></div><span class="rv">'+esc(g.ip)+'</span></div>'+
-            '<div class="row"><div class="rl"><b>Gateway</b></div><span class="rv">'+esc(g.gw)+'</span></div>'+
-            '<div class="row"><div class="rl"><b>Subnet</b></div><span class="rv">'+esc(g.mask)+'</span></div>'+
-          '</div>'+
-          '<div class="fldrow"><span class="lbl">Keep this address permanently?</span>'+
-            '<div class="note w" style="margin:2px 0 10px"><i></i><span>A fixed address means Loomx Ctrl always '+
-            'finds the node. Leave it automatic and the router may hand it a different one after a power cut.</span></div>'+
-            '<div class="pwr"><button class="btn" id="ipDyn">Leave it automatic</button>'+
-            '<button class="btn pri" id="ipFix">Make it static</button></div></div>',
+        S.info.savedSsid=ssid; S.info.wifiConfigured=true;
+        S.info.wifiConnected=false; S.info.ssid=''; S.info.mode='connecting';
+        sheet('Wi-Fi saved',
+          '<div class="note o"><i></i><span><b>Trying '+esc(ssid)+'</b>'+
+            'The credentials are stored on the controller and will be reused after every restart.</span></div>'+
+          '<div class="note w" style="margin-top:10px"><i></i><span><b>If Wi-Fi cannot connect</b>'+
+            'The controller will automatically return to access point mode as '+esc(S.ap.ssid)+'.</span></div>'+
+          '<div class="fldrow"><button class="btn pri" style="width:100%" id="wifiDone">Done</button></div>',
         function(){
-          function done(st){
-            S.net.dhcp=!st; S.info.ip=g.ip;
-            var fin=function(){ flashSaved(); closeSheet(); renderSetup(); renderHome() };
-            if(st) api.setNet({dhcp:false,gw:g.gw,mask:g.mask}).then(fin,fin); else fin();
-          }
-          $('#ipDyn').onclick=function(){done(false)};
-          $('#ipFix').onclick=function(){done(true)};
+          $('#wifiDone').onclick=function(){
+            flashSaved(); closeSheet(); renderSetup(); paint();
+          };
         });
+      }).catch(function(error){
+        sheet('Wi-Fi could not be saved','<div class="note w"><i></i><span>'+esc(error.message)+'</span></div>'+
+          '<button class="btn pri" id="wJoinRetry">Try again</button>',function(){
+            $('#wJoinRetry').onclick=function(){wifiJoin(ssid,lock)};
+          });
       });
     };
   });
@@ -1305,24 +1931,24 @@ function sheetAp(){
       'still reach it from a phone.</span></div>'+
     '<div class="fldrow"><span class="lbl">Network name</span><input class="inp" id="apS" value="'+esc(S.ap.ssid)+'"></div>'+
     '<div class="fldrow"><span class="lbl">Password</span><input class="inp" id="apP" value="'+esc(S.ap.pass)+'"></div>'+
-    '<div class="foot" style="text-align:left">Ships as <b>Loomx Node</b> / <b>loomx1234</b>. '+
+    '<div class="foot" style="text-align:left">Ships as <b>Loomx</b> / <b>loomx1234</b>. '+
       'Change it on commercial installs.</div>'+
     '<div class="pwr" style="margin-top:6px"><button class="btn" id="apR">Reset to default</button>'+
     '<button class="btn pri" id="apOk">Save</button></div>',
   function(){
-    $('#apR').onclick=function(){ $('#apS').value='Loomx Node'; $('#apP').value='loomx1234' };
+    $('#apR').onclick=function(){ $('#apS').value='Loomx'; $('#apP').value='loomx1234' };
     $('#apOk').onclick=function(){
-      api.setAp({ssid:$('#apS').value.trim()||'Loomx Node',pass:$('#apP').value||'loomx1234'})
+      api.setAp({ssid:$('#apS').value.trim()||'Loomx',pass:$('#apP').value||'loomx1234'})
         .then(function(){ flashSaved(); closeSheet(); renderSetup() },function(){});
     };
   });
 }
 function sheetProto(){
-  var u=uniCount();
+  var u=uniCount(), selectedProtocol=S.net.proto;
   sheet('Connector',
     '<div class="fldrow"><span class="lbl">Protocol</span><div class="seg" id="pSeg">'+
-      '<button data-p="sACN" class="'+(S.net.proto==='sACN'?'on':'')+'">sACN (E1.31)</button>'+
-      '<button data-p="Art-Net" class="'+(S.net.proto==='Art-Net'?'on':'')+'">Art-Net</button>'+
+      '<button data-p="sACN" class="'+(selectedProtocol==='sACN'?'on':'')+'">sACN (E1.31)</button>'+
+      '<button data-p="Art-Net" class="'+(selectedProtocol==='Art-Net'?'on':'')+'">Art-Net</button>'+
     '</div></div>'+
     '<div class="pair" style="margin-top:14px">'+
       '<label class="fld"><span class="lbl">Start universe</span>'+
@@ -1343,17 +1969,117 @@ function sheetProto(){
     $$('#pSeg button').forEach(function(b){
       b.onclick=function(){
         $$('#pSeg button').forEach(function(x){ x.classList.toggle('on',x===b) });
-        S.net.proto=b.dataset.p;
+        selectedProtocol=b.dataset.p;
       };
     });
     $('#pCancel').onclick=closeSheet;
     $('#pSave').onclick=function(){
-      api.setNet({proto:S.net.proto,
+      api.setNet({proto:selectedProtocol,
         uni:clamp(parseInt($('#pUni').value,10)||1,1,63999),
+        uniSet:true,
         addr:clamp(parseInt($('#pAddr').value,10)||1,1,512),
         timeout:clamp(parseInt($('#pTo').value,10)||2500,0,60000)})
         .then(function(){ flashSaved(); closeSheet(); renderSetup(); renderHome() },function(){});
     };
+  });
+}
+function sheetUniverse(){
+  var count=uniCount();
+  sheet('Start universe',
+    '<div class="fldrow"><span class="lbl">Start universe</span>'+
+      '<input class="inp" id="homeUniInput" inputmode="numeric" value="'+(S.net.uni||1)+'" style="margin-top:0"></div>'+
+    '<div class="universe-summary">'+
+      '<div><span>Universes used</span><b id="homeUniUsed"></b></div>'+
+      '<div class="available"><span>Next available</span><b id="homeUniNext"></b></div></div>'+
+    '<div class="pwr" style="margin-top:16px"><button class="btn" id="homeUniCancel">Cancel</button>'+
+      '<button class="btn pri" id="homeUniSave">Save</button></div>',
+  function(){
+    var input=$('#homeUniInput');
+    function selectedUniverse(){
+      return clamp(parseInt(input.value.replace(/[^0-9]/g,''),10)||1,1,63999);
+    }
+    function updateRange(){
+      var start=selectedUniverse(), end=start+count-1, next=end+1;
+      $('#homeUniUsed').textContent='U'+start+(end===start?'':'–U'+end);
+      $('#homeUniNext').textContent='U'+next;
+    }
+    input.oninput=updateRange;
+    input.onfocus=function(){input.select()};
+    input.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();$('#homeUniSave').click()}};
+    $('#homeUniCancel').onclick=closeSheet;
+    $('#homeUniSave').onclick=function(){
+      api.setNet({uni:selectedUniverse(),uniSet:true}).then(function(){
+        flashSaved(); closeSheet(); renderHome(); renderSetupIfOpen();
+      },function(){});
+    };
+    updateRange();
+  });
+}
+function sheetNetworkAddress(){
+  var currentIp=S.net.ip||S.info.ip||'', currentGateway=S.net.gw||'',
+    currentMask=S.net.mask||'255.255.255.0', useDhcp=S.net.dhcp!==false;
+  sheet('IP configuration',
+    '<div class="fldrow"><span class="lbl">Address mode</span><div class="seg" id="ipMode">'+
+      '<button data-dhcp="1" class="'+(useDhcp?'on':'')+'">Automatic (DHCP)</button>'+
+      '<button data-dhcp="0" class="static-mode '+(useDhcp?'':'on')+'">Static</button></div></div>'+
+    '<div class="network-fields" id="ipFields">'+
+      '<div class="fldrow"><span class="lbl">IP address</span><input class="inp" id="ipAddress" inputmode="decimal" value="'+esc(currentIp)+'"></div>'+
+      '<div class="fldrow"><span class="lbl">Gateway</span><input class="inp" id="ipGateway" inputmode="decimal" value="'+esc(currentGateway)+'"></div>'+
+      '<div class="fldrow"><span class="lbl">Subnet mask</span><input class="inp" id="ipSubnet" inputmode="decimal" value="'+esc(currentMask)+'"></div>'+
+    '</div><div class="field-error" id="ipError"></div>'+
+    '<div class="pwr"><button class="btn" id="ipCancel">Cancel</button><button class="btn pri" id="ipSave">Save</button></div>',
+  function(){
+    function setMode(dhcp){
+      useDhcp=dhcp;
+      $$('#ipMode button').forEach(function(button){
+        button.classList.toggle('on',(button.dataset.dhcp==='1')===dhcp);
+      });
+      $('#ipFields').classList.toggle('off',dhcp);
+      $$('#ipFields input').forEach(function(input){input.disabled=dhcp});
+      $('#ipError').textContent='';
+    }
+    function validAddress(value){
+      var parts=String(value).trim().split('.');
+      return parts.length===4&&parts.every(function(part){
+        return /^\d{1,3}$/.test(part)&&Number(part)>=0&&Number(part)<=255;
+      })&&parts.some(function(part){return Number(part)!==0});
+    }
+    $$('#ipMode button').forEach(function(button){
+      button.onclick=function(){setMode(button.dataset.dhcp==='1')};
+    });
+    $('#ipCancel').onclick=closeSheet;
+    $('#ipSave').onclick=function(){
+      var button=this;
+      var ip=$('#ipAddress').value.trim(), gateway=$('#ipGateway').value.trim(),
+        subnet=$('#ipSubnet').value.trim();
+      if(!useDhcp&&(!validAddress(ip)||!validAddress(gateway)||!validAddress(subnet))){
+        $('#ipError').textContent='Enter a valid IP address, gateway, and subnet mask.';
+        return;
+      }
+      button.disabled=true;
+      $('#ipError').textContent='Saving network settings…';
+      api.setNetwork({dhcp:useDhcp,ip:ip,gw:gateway,mask:subnet}).then(function(){
+        /* AI: below section was generated by an AI */
+        if(!useDhcp) S.info.ip=ip;
+        flashSaved();
+        if(MOCK){closeSheet();renderHome();renderSetupIfOpen();return}
+        var destination=useDhcp?location.href:
+          location.protocol+'//'+ip+(location.port?':'+location.port:'')+location.pathname;
+        sheet('Applying IP configuration',
+          '<div style="display:flex;align-items:center;gap:10px;justify-content:center;color:var(--t2);'+
+            'font-size:14px;padding:28px 0"><span class="spin"></span>Restarting the controller…</div>'+
+          '<div class="note o"><i></i><span><b>'+(useDhcp?'Switching to DHCP':'Moving to '+esc(ip))+'</b>'+
+            (useDhcp?'Reconnect through Loomx Ctrl if the router assigns a different address.':
+              'This page will continue at the new address automatically.')+'</span></div>');
+        setTimeout(function(){location.replace(destination)},8000);
+        /* AI: end */
+      },function(error){
+        button.disabled=false;
+        $('#ipError').textContent=error&&error.message?
+          error.message:'The network settings could not be saved.';
+      });
+    };
+    setMode(useDhcp);
   });
 }
 function sheetName(){
@@ -1366,69 +2092,630 @@ function sheetName(){
   function(){
     $('#nmC').onclick=closeSheet;
     $('#nmS').onclick=function(){
-      api.setName($('#nmV').value.trim()||'Loomx Node')
+      api.setName($('#nmV').value.trim()||'Loomx')
         .then(function(){ flashSaved(); closeSheet(); paint() },function(){});
     };
   });
 }
 
-function sheetFirmware(){
-  sheet('Update firmware',
-    '<div class="note w"><i></i><span><b>Use a Loomx firmware build for this exact board</b> '+
-      'Installing a stock WLED build replaces the Loomx interface. The node reboots after a successful update.</span></div>'+
-    '<form id="fwForm" method="POST" action="/update" enctype="multipart/form-data">'+
-      '<div class="fldrow"><span class="lbl">Firmware file</span>'+
-        '<input class="inp" id="fwFile" name="update" type="file" accept=".bin,.bin.gz" required></div>'+
-      '<div class="foot" style="text-align:left;padding:10px 0 0">Current device: '+
-        esc(S.info.arch||'esp32')+' &middot; WLED '+esc(S.info.ver||'unknown')+'. '+
-        'Configuration is normally retained, but export it first.</div>'+
-      '<div class="pwr" style="margin-top:16px"><button class="btn" id="fwCancel" type="button">Cancel</button>'+
-        '<button class="btn pri" id="fwGo" type="button">Install and reboot</button></div>'+
-    '</form>',
+function sheetControllerType(){
+  var selected=S.ota.model||otaRunningModel();
+  sheet('Board type',
+    '<div class="note w"><i></i><span><b>Choose the controller connected to this node</b>'+
+      'VX4 and VX8 use different output maps. The updater will only download the matching firmware.</span></div>'+
+    '<div class="fldrow"><span class="lbl">Controller</span><div class="seg" id="otaModelSeg">'+
+      '<button data-model="VX4" class="'+(selected==='VX4'?'on':'')+'">VX4</button>'+
+      '<button data-model="VX8" class="'+(selected==='VX8'?'on':'')+'">VX8</button>'+
+    '</div></div>'+
+    '<div class="foot" style="text-align:left">Running firmware: '+
+      esc(S.info.release||'unidentified')+' &middot; WLED '+esc(S.info.ver||'unknown')+'.</div>'+
+    '<div class="pwr"><button class="btn" id="otaModelCancel">Cancel</button>'+
+      '<button class="btn pri" id="otaModelSave" '+(selected?'':'disabled')+'>Save</button></div>',
   function(){
-    $('#fwCancel').onclick=closeSheet;
-    $('#fwGo').onclick=function(){
-      var file=$('#fwFile').files[0];
-      if(!file){
-        $('#fwFile').click();
-        return;
-      }
-      var form=$('#fwForm');
-      sheet('Install firmware?',
-        '<div class="note w"><i></i><span><b>'+esc(file.name)+'</b>'+
-          'Do not unplug the node while it is writing firmware.</span></div>'+
-        '<div class="pwr" style="margin-top:18px"><button class="btn" id="fwBack">Go back</button>'+
-          '<button class="btn pri" id="fwConfirm">Install now</button></div>',
-      function(){
-        $('#fwBack').onclick=sheetFirmware;
-        $('#fwConfirm').onclick=function(){
-          if(MOCK){
-            sheet('Demo mode','<div class="note w"><i></i><span>Firmware upload is available only when this page is served by a node.</span></div>');
-            return;
-          }
-          if(!form){
-            closeSheet();
-            return;
-          }
-          form.submit();
-        };
-      });
+    $$('#otaModelSeg button').forEach(function(b){
+      b.onclick=function(){
+        selected=b.dataset.model;
+        $$('#otaModelSeg button').forEach(function(x){x.classList.toggle('on',x===b)});
+        $('#otaModelSave').disabled=false;
+      };
+    });
+    $('#otaModelCancel').onclick=closeSheet;
+    $('#otaModelSave').onclick=function(){
+      if(selected!=='VX4'&&selected!=='VX8') return;
+      $('#otaModelSave').disabled=true;
+      api.setControllerOutputs(selected).then(function(){
+        S.ota.model=selected;
+        S.otaAvailable=null;
+        saveOtaPrefs();
+        flashSaved();
+        closeSheet();
+        renderSetup();
+        renderOuts();
+        renderHome();
+      },function(){ $('#otaModelSave').disabled=false });
     };
   });
 }
 
+function otaManifestUrl(){
+  return OTA_MANIFESTS[S.ota.model]||'';
+}
+function validateOtaManifest(m){
+  var model=S.ota.model;
+  if(!m||m.model!==model) throw new Error('Supabase returned firmware for a different controller.');
+  if(typeof m.version!=='string'||!m.version||m.version.length>96)
+    throw new Error('The release version is missing or invalid.');
+  if(typeof m.filename!=='string'||!/^[A-Za-z0-9._-]+\.bin$/.test(m.filename))
+    throw new Error('The firmware filename is invalid.');
+  if(typeof m.checksum_sha256!=='string'||!/^[a-f0-9]{64}$/i.test(m.checksum_sha256))
+    throw new Error('The release does not include a valid SHA-256 checksum.');
+  if(!Number.isInteger(m.file_size)||m.file_size<262144||m.file_size>4194304)
+    throw new Error('The firmware size is outside the safe range.');
+  var u;
+  try{ u=new URL(m.public_url) }catch(e){ throw new Error('The firmware download URL is invalid.') }
+  var prefix='/storage/v1/object/public/firmware/'+model+'/releases/';
+  if(u.protocol!=='https:'||u.origin!==OTA_ORIGIN||u.pathname.indexOf(prefix)!==0)
+    throw new Error('The firmware URL is not in the Loomx Supabase release bucket.');
+  if(u.pathname.slice(-m.filename.length)!==m.filename)
+    throw new Error('The manifest filename does not match its download URL.');
+  return m;
+}
+function otaRunningModel(){
+  var r=String(S.info.release||'').toUpperCase();
+  return r==='VX4'||r==='VX8'?r:'';
+}
+function otaInstalledVersion(){
+  return S.ota.installed[S.ota.model]||'';
+}
+function otaVersionLabel(version){
+  version=String(version||'').trim();
+  if(!version) return 'Unversioned';
+  return /^[0-9]+\.[0-9]+\.[0-9]+$/.test(version)?'v'+version:version;
+}
+function otaCurrentVersion(){
+  return otaVersionLabel(S.info.loomxVer||otaInstalledVersion());
+}
+function compareOtaVersions(a,b){
+  var av=String(a).split('.').map(Number),bv=String(b).split('.').map(Number);
+  for(var i=0;i<3;i++) if(av[i]!==bv[i]) return av[i]>bv[i]?1:-1;
+  return 0;
+}
+function otaIsCurrent(m){
+  var runningVersion=String(S.info.loomxVer||'').trim();
+  var latestVersion=String(m.loomx_version||m.version||'').trim();
+  if(/^[0-9]+\.[0-9]+\.[0-9]+$/.test(runningVersion)&&
+    /^[0-9]+\.[0-9]+\.[0-9]+$/.test(latestVersion)){
+    return compareOtaVersions(runningVersion,latestVersion)>=0;
+  }
+  var running=String(S.info.loomx||'').toLowerCase();
+  var latest=String(m.git_commit_sha||'').toLowerCase();
+  return (!!running&&running===latest)||otaInstalledVersion()===m.version;
+}
+function otaDate(s){
+  var d=new Date(s);
+  return isNaN(d.getTime())?'Unknown':d.toLocaleString();
+}
+function otaSize(n){
+  return (n/1048576).toFixed(2)+' MB';
+}
+var otaInstallScreenActive=false;
+function warnBeforeOtaLeave(e){
+  e.preventDefault();
+  e.returnValue='';
+  return '';
+}
+function beginOtaInstallScreen(m){
+  otaInstallScreenActive=true;
+  $('#otaSplash').classList.add('on');
+  $('#otaSplashLoader').style.display='grid';
+  $('#otaSplashPhase').textContent='Installing '+otaVersionLabel(m.version);
+  $('#otaSplashTitle').textContent='Preparing firmware';
+  $('#otaSplashMessage').textContent='This update may take a few minutes.';
+  $('#otaSplashBar').style.width='2%';
+  $('#otaSplashCaution').style.display='block';
+  $('#otaSplashCaution').textContent='Do not unplug the controller or leave this screen.';
+  $('#otaSplashBack').style.display='none';
+  window.addEventListener('beforeunload',warnBeforeOtaLeave);
+}
+function updateOtaInstallScreen(title,message,pctValue){
+  if(!otaInstallScreenActive) return;
+  $('#otaSplashTitle').textContent=title;
+  $('#otaSplashMessage').textContent=message;
+  $('#otaSplashBar').style.width=clamp(pctValue||0,0,100)+'%';
+}
+function failOtaInstallScreen(message){
+  otaInstallScreenActive=false;
+  window.removeEventListener('beforeunload',warnBeforeOtaLeave);
+  $('#otaSplashLoader').style.display='none';
+  $('#otaSplashPhase').textContent='Update stopped';
+  $('#otaSplashTitle').textContent='Firmware was not installed';
+  $('#otaSplashMessage').textContent=message;
+  $('#otaSplashCaution').style.display='none';
+  $('#otaSplashBack').style.display='flex';
+  $('#otaSplashBack').onclick=function(){
+    $('#otaSplash').classList.remove('on');
+    sheetFirmware();
+  };
+}
+function showOtaRebooting(m){
+  $('#otaSplashPhase').textContent='Update complete';
+  $('#otaSplashTitle').textContent='Rebooting controller';
+  $('#otaSplashMessage').textContent=otaVersionLabel(m.version)+
+    ' is installed. The node will reconnect automatically.';
+  $('#otaSplashBar').style.width='100%';
+  $('#otaSplashCaution').textContent='Keep the controller powered on while it restarts.';
+  setTimeout(function(){
+    otaInstallScreenActive=false;
+    window.removeEventListener('beforeunload',warnBeforeOtaLeave);
+    location.reload();
+  },12000);
+}
+function otaError(title,message){
+  var el=$('#otaStatus');
+  if(el) el.innerHTML='<div class="note b"><i></i><span><b>'+esc(title)+'</b>'+esc(message)+'</span></div>';
+}
+function otaProgress(title,message,pctValue){
+  updateOtaInstallScreen(title,message,pctValue);
+  var el=$('#otaStatus');
+  if(!el) return;
+  el.innerHTML='<div class="note o"><i></i><span><b>'+esc(title)+'</b>'+esc(message)+
+    '<div class="ota-progress"><i style="width:'+clamp(pctValue||0,0,100)+'%"></i></div></span></div>';
+}
+function renderOtaResult(m){
+  var el=$('#otaStatus'); if(!el) return;
+  var same=otaIsCurrent(m);
+  el.innerHTML=
+    '<div class="note '+(same?'o':'w')+'"><i></i><span><b>'+
+      (same?'This node is up to date':'Update available')+'</b>'+
+      (same?'Running '+esc(otaCurrentVersion())+'; latest published is '+
+        esc(otaVersionLabel(m.version))+'.':
+        esc(otaCurrentVersion())+' → '+esc(otaVersionLabel(m.version)))+
+    '</span></div>'+
+    '<div class="ota-meta">'+
+      '<div><span>Controller</span><span>'+esc(m.model)+'</span></div>'+
+      '<div><span>Current version</span><span>'+esc(otaCurrentVersion())+'</span></div>'+
+      '<div><span>New version</span><span>'+esc(otaVersionLabel(m.version))+'</span></div>'+
+      '<div><span>Built</span><span>'+esc(otaDate(m.built_at))+'</span></div>'+
+      '<div><span>Size</span><span>'+esc(otaSize(m.file_size))+'</span></div>'+
+      '<div><span>Commit</span><span>'+esc(String(m.git_commit_sha||'').slice(0,8)||'Unknown')+'</span></div>'+
+    '</div>'+
+    (same?'':'<div class="fldrow"><button class="btn pri" style="width:100%" id="otaInstall">'+
+      'Install update</button></div>');
+  if(!same) $('#otaInstall').onclick=function(){confirmOtaInstall(m)};
+}
+function fetchOtaManifest(attempt){
+  return new Promise(function(resolve,reject){
+    var finished=false;
+    var controller=typeof AbortController==='function'?new AbortController():null;
+    var timer=setTimeout(function(){
+      if(finished) return;
+      finished=true;
+      if(controller) controller.abort();
+      reject(new Error('Supabase did not respond within 8 seconds.'));
+    },OTA_CHECK_TIMEOUT_MS);
+    var options={cache:'no-store',headers:{'Cache-Control':'no-cache'}};
+    if(controller) options.signal=controller.signal;
+    fetch(otaManifestUrl()+'?check='+Date.now()+'&attempt='+attempt,options)
+      .then(function(r){
+        if(!r.ok) throw new Error('Supabase returned HTTP '+r.status+'.');
+        return r.json();
+      }).then(validateOtaManifest).then(function(m){
+        if(finished) return;
+        finished=true; clearTimeout(timer); resolve(m);
+      },function(e){
+        if(finished) return;
+        finished=true; clearTimeout(timer);
+        reject(e&&e.name==='AbortError'?
+          new Error('Supabase did not respond within 8 seconds.'):e);
+      });
+  });
+}
+function checkOtaUpdate(){
+  if(!otaManifestUrl()){ otaError('Choose a controller type','Select VX4 or VX8 in Settings first.'); return }
+  function attempt(number){
+    otaProgress(number===1?'Checking Supabase':'Trying Supabase again',
+      (number===1?'Reading':'Retrying')+' the latest '+S.ota.model+
+      ' release manifest…',number===1?18:32);
+    return fetchOtaManifest(number).catch(function(error){
+      if(number>=2) throw error;
+      otaProgress('First check failed','Waiting one second, then trying once more…',25);
+      return wait(1000).then(function(){return attempt(2)});
+    });
+  }
+  attempt(1).then(function(m){
+    S.otaAvailable=validateOtaManifest(m);
+    renderOtaResult(S.otaAvailable);
+  }).catch(function(e){
+    S.otaAvailable=null;
+    otaError('Could not check after two attempts',e.message||String(e));
+  });
+}
+function bytesToHex(buffer){
+  return Array.prototype.map.call(new Uint8Array(buffer),function(b){
+    return b.toString(16).padStart(2,'0');
+  }).join('');
+}
+function sha256HexSync(buffer){
+  var k=[
+    0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
+    0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
+    0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,
+    0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,
+    0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,
+    0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,
+    0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
+    0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
+  ];
+  var src=new Uint8Array(buffer), padded=((src.length+9+63)>>6)<<6;
+  var data=new Uint8Array(padded), view=new DataView(data.buffer), w=new Uint32Array(64);
+  data.set(src); data[src.length]=0x80;
+  view.setUint32(padded-8,Math.floor(src.length/0x20000000),false);
+  view.setUint32(padded-4,(src.length<<3)>>>0,false);
+  var hs=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  function rr(x,n){return (x>>>n)|(x<<(32-n))}
+  for(var off=0;off<padded;off+=64){
+    var i;
+    for(i=0;i<16;i++) w[i]=view.getUint32(off+i*4,false);
+    for(i=16;i<64;i++){
+      var s0=rr(w[i-15],7)^rr(w[i-15],18)^(w[i-15]>>>3);
+      var s1=rr(w[i-2],17)^rr(w[i-2],19)^(w[i-2]>>>10);
+      w[i]=(w[i-16]+s0+w[i-7]+s1)>>>0;
+    }
+    var a=hs[0],b=hs[1],c=hs[2],d=hs[3],e=hs[4],f=hs[5],g=hs[6],h=hs[7];
+    for(i=0;i<64;i++){
+      var sE=rr(e,6)^rr(e,11)^rr(e,25);
+      var ch=(e&f)^((~e)&g);
+      var t1=(h+sE+ch+k[i]+w[i])>>>0;
+      var sA=rr(a,2)^rr(a,13)^rr(a,22);
+      var maj=(a&b)^(a&c)^(b&c);
+      var t2=(sA+maj)>>>0;
+      h=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;
+    }
+    hs[0]=(hs[0]+a)>>>0; hs[1]=(hs[1]+b)>>>0;
+    hs[2]=(hs[2]+c)>>>0; hs[3]=(hs[3]+d)>>>0;
+    hs[4]=(hs[4]+e)>>>0; hs[5]=(hs[5]+f)>>>0;
+    hs[6]=(hs[6]+g)>>>0; hs[7]=(hs[7]+h)>>>0;
+  }
+  return hs.map(function(x){return ('00000000'+x.toString(16)).slice(-8)}).join('');
+}
+function sha256Hex(buffer){
+  if(window.crypto&&window.crypto.subtle){
+    return window.crypto.subtle.digest('SHA-256',buffer).then(bytesToHex);
+  }
+  return Promise.resolve(sha256HexSync(buffer));
+}
+/* AI: below section was generated by an AI */
+// Validate this action's code without relying on a previous browser unlock.
+function validateOtaPin(pin){
+  if(!/^\d{4}$/.test(pin||'')) return Promise.reject(new Error('Enter your four-digit Settings PIN.'));
+  if(MOCK) return Promise.resolve({success:true});
+  return fetch('/loomx/security/unlock',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+    body:'pin='+encodeURIComponent(pin)}).then(function(response){
+      if(response.status===401) throw new Error('Incorrect code. Check your Settings PIN and try again.');
+      if(response.status===429) throw new Error('Wait three seconds, then try the code again.');
+      if(!response.ok) throw new Error('Could not verify the code. Check the connection and try again.');
+      return response.json();
+    }).then(function(result){
+      if(!result||result.success!==true) throw new Error('The code was not accepted. Please try again.');
+      return result;
+    });
+}
+// Keep authorization errors in the card. No firmware downloads or writes start
+// until the Settings PIN has been accepted.
+function sheetOtaCode(title,onAuthorized,onCancel){
+  sheet(title,
+    '<p class="dim">Enter this controller’s four-digit Settings PIN to continue.</p>'+
+    '<div class="fldrow"><label class="lbl" for="otaCode">Update code (Settings PIN)</label>'+
+      '<input class="inp" id="otaCode" type="password" inputmode="numeric" maxlength="4" '+
+      'pattern="[0-9]{4}" autocomplete="off" placeholder="4-digit code"></div>'+
+    '<div class="field-error" id="otaCodeError" role="alert"></div>'+
+    '<div class="pwr"><button class="btn" id="otaCodeCancel">Cancel</button>'+
+      '<button class="btn pri" id="otaCodeContinue">Continue</button></div>',function(){
+      var input=$('#otaCode'), button=$('#otaCodeContinue'),
+        cancel=$('#otaCodeCancel'), error=$('#otaCodeError');
+      input.oninput=function(){input.value=input.value.replace(/[^0-9]/g,'').slice(0,4);error.textContent=''};
+      cancel.onclick=onCancel||closeSheet;
+      button.onclick=function(){
+        var pin=input.value;
+        if(!/^\d{4}$/.test(pin)){error.textContent='Enter your four-digit Settings PIN.';return}
+        button.disabled=true;cancel.disabled=true;error.textContent='';
+        validateOtaPin(pin).then(function(){
+          // A closed/replaced card must not start a pending update.
+          if($('#otaCode')!==input||!$('#sheet').classList.contains('on')) return;
+          input.value='';closeSheet();onAuthorized(pin);
+        }).catch(function(reason){
+          if($('#otaCode')!==input||!$('#sheet').classList.contains('on')) return;
+          error.textContent=reason.message||'Could not authorize the update. Please try again.';
+          button.disabled=false;cancel.disabled=false;
+        });
+      };
+      input.onkeydown=function(event){if(event.key==='Enter'&&!button.disabled) button.onclick()};
+    });
+}
+/* AI: end */
+function preflightOtaUpload(){
+  if(MOCK) return Promise.resolve();
+  return fetch('/update',{cache:'no-store'}).then(function(r){
+    if(r.status===401) throw new Error('OTA access changed. Go back and enter your update code again.');
+    if(r.status===501) throw new Error('This firmware was built without OTA support.');
+    if(!r.ok) throw new Error('The node rejected OTA access (HTTP '+r.status+').');
+  });
+}
+function uploadOtaBinary(buffer,m){
+  return new Promise(function(resolve,reject){
+    var xhr=new XMLHttpRequest();
+    var body=new FormData();
+    body.append('update',new Blob([buffer],{type:'application/octet-stream'}),m.filename);
+    xhr.open('POST','/update',true);
+    xhr.timeout=180000;
+    xhr.upload.onprogress=function(e){
+      if(e.lengthComputable) otaProgress('Installing firmware',
+        'Writing the verified '+m.model+' update to the node. Do not unplug it.',
+        68+Math.round(e.loaded/e.total*30));
+    };
+    xhr.onerror=function(){reject(new Error('The connection to the node was lost during upload.'))};
+    xhr.ontimeout=function(){reject(new Error('The node did not finish the upload in time.'))};
+    xhr.onload=function(){
+      if(xhr.status>=200&&xhr.status<300) resolve();
+      else if(xhr.status===401) reject(new Error('Update authorization expired. Go back and enter your update code again.'));
+      else reject(new Error('The node rejected the firmware (HTTP '+xhr.status+').'));
+    };
+    xhr.send(body);
+  });
+}
+function installOtaUpdate(m,pin){
+  var running=otaRunningModel();
+  if(running&&running!==m.model){
+    otaError('Controller mismatch','This node identifies itself as '+running+
+      ', so the '+m.model+' update was blocked.');
+    return;
+  }
+  if(MOCK){
+    otaError('Demo mode','The download can be checked here, but installation only works when this page is served by a node.');
+    return;
+  }
+  if(!/^\d{4}$/.test(pin||'')){
+    sheetOtaCode('Authorize firmware update',function(code){installOtaUpdate(m,code)},function(){confirmOtaInstall(m)});
+    return;
+  }
+  beginOtaInstallScreen(m);
+  var binary;
+  otaProgress('Preparing the node','Checking update access…',5);
+  preflightOtaUpload().then(function(){
+    otaProgress('Downloading firmware','Reading the '+m.model+' binary from Supabase…',15);
+    return fetch(m.public_url,{cache:'no-store'});
+  }).then(function(r){
+    if(!r.ok) throw new Error('Firmware download failed with HTTP '+r.status+'.');
+    return r.arrayBuffer();
+  }).then(function(buffer){
+    binary=buffer;
+    if(buffer.byteLength!==m.file_size)
+      throw new Error('Downloaded size does not match the signed release manifest.');
+    otaProgress('Verifying firmware','Computing SHA-256 before anything is written…',54);
+    return sha256Hex(buffer);
+  }).then(function(hash){
+    if(hash.toLowerCase()!==m.checksum_sha256.toLowerCase())
+      throw new Error('SHA-256 verification failed. The update was not installed.');
+    otaProgress('Firmware verified','Checksum matched. Starting the WLED updater…',66);
+    // Refresh the Settings PIN session after a potentially slow download.
+    return validateOtaPin(pin).then(function(){return uploadOtaBinary(binary,m)});
+  }).then(function(){
+    S.ota.installed[m.model]=m.version;
+    S.info.loomxVer=m.version;
+    saveOtaPrefs();
+    showOtaRebooting(m);
+  }).catch(function(e){
+    failOtaInstallScreen(e.message||String(e));
+  });
+}
+function confirmOtaInstall(m){
+  sheet('Install '+m.model+' update?',
+    '<div class="note w"><i></i><span><b>'+esc(otaCurrentVersion())+' → '+
+      esc(otaVersionLabel(m.version))+'</b>'+
+      'The binary will be downloaded from Supabase, verified, then installed. Do not unplug the node.</span></div>'+
+    '<div class="ota-meta">'+
+      '<div><span>File</span><span>'+esc(m.filename)+'</span></div>'+
+      '<div><span>Current version</span><span>'+esc(otaCurrentVersion())+'</span></div>'+
+      '<div><span>New version</span><span>'+esc(otaVersionLabel(m.version))+'</span></div>'+
+      '<div><span>SHA-256</span><span>'+esc(m.checksum_sha256.slice(0,16))+'&hellip;</span></div>'+
+    '</div><div id="otaStatus"></div>'+
+    '<div class="pwr" style="margin-top:18px"><button class="btn" id="otaBack">Go back</button>'+
+      '<button class="btn pri" id="otaConfirm">Install firmware</button></div>',
+  function(){
+    $('#otaBack').onclick=sheetFirmware;
+    $('#otaConfirm').onclick=function(){
+      installOtaUpdate(m);
+    };
+  });
+}
+function sheetFirmware(){
+  var model=S.ota.model||'Not selected';
+  sheet('OTA updates',
+    '<div class="note o"><i></i><span><b>Firmware updates</b>'+
+      'The updater will only accept a verified '+esc(model)+' release.</span></div>'+
+    '<div class="ota-meta">'+
+      '<div><span>Controller type</span><span>'+esc(model)+'</span></div>'+
+      '<div><span>Loomx version</span><span>'+esc(otaCurrentVersion())+'</span></div>'+
+      '<div><span>WLED base</span><span>'+esc(S.info.ver||'unknown')+'</span></div>'+
+      '<div><span>Update source</span><span>Supabase</span></div>'+
+    '</div>'+
+    '<div id="otaStatus" style="margin-top:12px"></div>'+
+    '<div class="pwr" style="margin-top:16px">'+
+      '<button class="btn pri" style="width:100%" id="otaCheck" '+
+        (S.ota.model?'':'disabled')+'>Check for update</button>'+
+    '</div>'+
+    (!S.ota.model?'<div class="foot">Choose VX4 or VX8 under Controller type before checking for updates.</div>':
+      '<div class="foot">Downloads stay on your local network except for the public Supabase release. '+
+        'No API key is stored on the node.</div>')+
+    '<div class="fldrow"><button class="btn quiet" style="width:100%" id="otaLocal">'+
+      'Advanced: install a local firmware file</button></div>',
+  function(){
+    var check=$('#otaCheck');
+    if(check) check.onclick=checkOtaUpdate;
+    $('#otaLocal').onclick=function(){
+      if(MOCK){
+        otaError('Demo mode','Local firmware upload is available only when this page is served by a node.');
+      }else{
+        sheetOtaCode('Authorize local update',function(){location.href='/update'},sheetFirmware);
+      }
+    };
+  });
+}
+
+/* AI: below section was generated by an AI */
+function sheetSettingsPin(){
+  sheet('Settings PIN',
+    '<div class="note o"><i></i><span><b>Default PIN: 1234</b> '+
+      'Create your own four-digit PIN to protect settings and password backups.</span></div>'+
+    '<div class="fldrow"><span class="lbl">Current PIN</span>'+
+      '<input class="inp pin-field" id="pinCurrent" type="password" inputmode="numeric" pattern="[0-9]{4}" '+
+        'maxlength="4" autocomplete="current-password" value="'+esc(savedSettingsPin())+'"></div>'+
+    '<div class="fldrow"><span class="lbl">New PIN</span>'+
+      '<input class="inp pin-field" id="pinNew" type="password" inputmode="numeric" pattern="[0-9]{4}" '+
+        'maxlength="4" autocomplete="new-password" placeholder="4 digits"></div>'+
+    '<div class="fldrow"><span class="lbl">Confirm new PIN</span>'+
+      '<input class="inp pin-field" id="pinConfirm" type="password" inputmode="numeric" pattern="[0-9]{4}" '+
+        'maxlength="4" autocomplete="new-password" placeholder="Repeat PIN"></div>'+
+    '<div class="field-error" id="pinError"></div>'+
+    '<div class="pwr"><button class="btn" id="pinCancel">Cancel</button>'+
+      '<button class="btn pri" id="pinSave">Save PIN</button></div>',
+  function(){
+    $$('.pin-field').forEach(function(input){
+      input.oninput=function(){this.value=this.value.replace(/\D/g,'').slice(0,4)};
+    });
+    $('#pinCancel').onclick=closeSheet;
+    $('#pinSave').onclick=function(){
+      var button=this, current=$('#pinCurrent').value, next=$('#pinNew').value,
+        confirm=$('#pinConfirm').value, error=$('#pinError');
+      error.textContent='';
+      if(!/^\d{4}$/.test(next)||next==='0000'){
+        error.textContent='Enter exactly four digits. 0000 is not allowed.';
+        return;
+      }
+      if(next!==confirm){
+        error.textContent='The new PIN entries do not match.';
+        return;
+      }
+      button.disabled=true;
+      api.setSettingsPin(current,next).then(function(){
+        flashSaved(); closeSheet();
+      }).catch(function(e){
+        error.textContent=e.message||String(e);
+        button.disabled=false;
+      });
+    };
+  });
+}
+/* AI: end */
+
 function sheetBackup(){
   var safeName=(S.info.name||'loomx-node').toLowerCase()
     .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'loomx-node';
-  sheet('Export configuration',
-    '<div class="note o"><i></i><span><b>Keep both files together</b> '+
-      'Configuration contains hardware and network settings. Presets contains saved looks and playlists. '+
-      'WLED intentionally excludes passwords from backups.</span></div>'+
-    '<div class="fldrow"><a class="btn pri" style="width:100%" href="/cfg.json" download="'+
-      esc(safeName)+'-config.json">Download configuration</a></div>'+
+  sheet('Backup and restore',
+    '<div class="note w"><i></i><span><b>Configuration backups contain passwords</b> '+
+      'They include Wi-Fi, access-point, MQTT and OTA credentials. Store the file securely. '+
+      'A Settings PIN is required to download it.</span></div>'+
+    '<div class="fldrow"><span class="lbl">Settings PIN</span>'+
+      '<input class="inp" id="backupPin" type="password" inputmode="numeric" pattern="[0-9]*" '+
+      'maxlength="4" autocomplete="current-password" value="'+esc(savedSettingsPin())+'" placeholder="Default: 1234"></div>'+
+    '<div class="fldrow"><button class="btn pri" style="width:100%" id="backupConfigDownload">'+
+      'Download configuration + passwords</button></div>'+
     '<div class="fldrow"><a class="btn quiet" style="width:100%" href="/presets.json" download="'+
       esc(safeName)+'-presets.json">Download presets</a></div>'+
-    '<div class="foot" style="text-align:left">Export before firmware updates or hardware changes.</div>');
+    '<div class="sec"><span class="lbl">Restore files</span></div>'+
+    '<div class="note b"><i></i><span><b>Uploads replace the current data</b> '+
+      'Restoring configuration reboots the node. You may need to reconnect using its restored network address.</span></div>'+
+    '<div class="fldrow"><span class="lbl">Configuration file</span>'+
+      '<input class="inp" id="backupConfigFile" type="file" accept=".json,application/json">'+
+      '<button class="btn quiet" style="width:100%;margin-top:8px" id="backupConfigUpload">'+
+        'Upload configuration</button></div>'+
+    '<div class="fldrow"><span class="lbl">Preset file</span>'+
+      '<input class="inp" id="backupPresetFile" type="file" accept=".json,application/json">'+
+      '<button class="btn quiet" style="width:100%;margin-top:8px" id="backupPresetUpload">'+
+        'Upload presets</button></div>'+
+    '<div class="field-error" id="backupStatus"></div>'+
+    '<div class="foot" style="text-align:left">Back up both files before firmware updates or hardware changes.</div>',
+  function(){
+    var status=$('#backupStatus');
+    function showStatus(message,ok){
+      status.textContent=message;
+      status.classList.toggle('ok',!!ok);
+    }
+    function pin(){return $('#backupPin').value.trim()}
+    function unlock(){
+      if(MOCK) return Promise.reject(new Error('Uploads are available only when connected to a node.'));
+      return req('/json/cfg',{pin:pin(),sv:false}).then(function(result){
+        rememberSettingsPin(pin());
+        return result;
+      });
+    }
+    function uploadJson(input,target){
+      var file=input.files&&input.files[0];
+      if(!file) return Promise.reject(new Error('Choose a JSON file first.'));
+      return file.text().then(function(text){
+        var parsed;
+        try{parsed=JSON.parse(text)}catch(e){throw new Error('The selected file is not valid JSON.')}
+        var body=new Blob([JSON.stringify(parsed)],{type:'application/json'});
+        return unlock().then(function(){
+          return new Promise(function(resolve,reject){
+            var xhr=new XMLHttpRequest(), form=new FormData();
+            xhr.open('POST','/upload');
+            xhr.timeout=30000;
+            xhr.onload=function(){
+              if(xhr.status>=200&&xhr.status<300) resolve(xhr.responseText);
+              else reject(new Error(xhr.responseText||'Upload failed.'));
+            };
+            xhr.onerror=function(){reject(new Error('The connection to the node was lost during upload.'))};
+            xhr.ontimeout=function(){reject(new Error('The upload did not finish in time.'))};
+            form.append('data',body,target);
+            xhr.send(form);
+          });
+        });
+      });
+    }
+    $('#backupConfigDownload').onclick=function(){
+      var button=this; button.disabled=true; showStatus('Preparing secure configuration backup…',true);
+      fetch('/loomx/backup/config',{method:'POST',cache:'no-store',headers:{
+        'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'
+      },body:'pin='+encodeURIComponent(pin())}).then(function(response){
+        if(!response.ok) return response.text().then(function(message){throw new Error(message)});
+        return response.blob();
+      }).then(function(blob){
+        rememberSettingsPin(pin());
+        var url=URL.createObjectURL(blob), link=document.createElement('a');
+        link.href=url; link.download=safeName+'-config-with-passwords.json';
+        document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+        showStatus('Configuration backup downloaded.',true);
+      }).catch(function(error){showStatus(error.message||String(error),false)}).then(function(){
+        button.disabled=false;
+      });
+    };
+    $('#backupConfigUpload').onclick=function(){
+      var input=$('#backupConfigFile'), button=this, file=input.files&&input.files[0];
+      if(!file){showStatus('Choose a configuration JSON file first.',false);return}
+      button.disabled=true; showStatus('Validating configuration…',true);
+      file.text().then(function(text){
+        var parsed;
+        try{parsed=JSON.parse(text)}catch(e){throw new Error('The selected file is not valid JSON.')}
+        var target=parsed&&parsed.format==='loomx-config-backup'
+          ?'/loomx-config-backup.json':'/cfg.json';
+        return uploadJson(input,target);
+      }).then(function(){
+        showStatus('Configuration restored. The node is rebooting…',true);
+      }).catch(function(error){showStatus(error.message||String(error),false)}).then(function(){
+        button.disabled=false;
+      });
+    };
+    $('#backupPresetUpload').onclick=function(){
+      var input=$('#backupPresetFile'), button=this; button.disabled=true;
+      showStatus('Uploading presets…',true);
+      uploadJson(input,'/presets.json').then(function(){
+        input.value=''; showStatus('Presets restored.',true);
+      }).catch(function(error){showStatus(error.message||String(error),false)}).then(function(){
+        button.disabled=false;
+      });
+    };
+  });
 }
 
 /* ---------------------------------------------------------- routing + boot */
@@ -1440,16 +2727,26 @@ function go(v){
 }
 $$('nav button').forEach(function(b){ b.onclick=function(){ go(b.dataset.v) } });
 function paint(){
-  $('#hName').textContent=S.info.name||'Loomx Node';
-  var ap=S.info.ap;
-  $('#hDot').className='dot'+(ap?' ap':(S.info.ssid?'':' off'));
-  $('#hNet').textContent=ap?('Access point · '+S.ap.ssid)
-    :(S.info.ssid?(S.info.ssid+' · '+(S.info.ip||'')):'No network');
+  /* AI: below section was generated by an AI */
+  document.title=(S.info.name||'Loomx')+' · Loomx';
+  /* AI: end */
+  var connected=S.info.wifiConnected,ap=S.info.ap,saved=S.info.savedSsid;
+  var ethernet=S.info.ethernetConnected||S.info.mode==='ethernet';
+  $('#homeWifiConnect').classList.toggle('on',!S.info.networkConnected);
+  $('#setWifiConnect').classList.toggle('on',!S.info.networkConnected);
+  $('#hDot').className='dot'+(ap?' ap':(S.info.networkConnected?'':' off'));
+  $('#hNet').textContent=ethernet?('Connected via Ethernet · '+(S.info.ip||''))
+    :connected?((S.info.ssid||saved||'Wi-Fi')+' · '+(S.info.ip||''))
+    :ap?('AP mode · '+S.ap.ssid)
+    :S.info.networkConnected?('Connected · '+(S.info.ip||''))
+    :saved?('Connecting to '+saved):'No network';
   paintLive();
   if(S.view==='home') renderHome();
   if(S.view==='out') renderOuts();
   if(S.view==='set') renderSetup();
 }
+$('#homeWifiConnect').onclick=sheetWifi;
+$('#setWifiConnect').onclick=sheetWifi;
 window.addEventListener('resize',function(){ if(S.view==='home') setKnob(pct()) });
 
 api.load().then(function(){
@@ -1469,6 +2766,11 @@ api.load().then(function(){
     req('/json/si').then(function(j){
       var st=j.state||{}, info=j.info||{};
       var wasLive=S.live, wasOverride=S.liveOverride;
+      var oldNetwork=[S.info.wifiConnected,S.info.ethernetConnected,S.info.networkConnected,S.info.ap,S.info.ssid,
+        S.info.savedSsid,S.info.ip,S.info.rssi,S.info.mode].join('|');
+      syncNetworkInfo(info,null);
+      if(oldNetwork!==[S.info.wifiConnected,S.info.ethernetConnected,S.info.networkConnected,S.info.ap,S.info.ssid,
+        S.info.savedSsid,S.info.ip,S.info.rssi,S.info.mode].join('|')) paint();
       syncLive(st,info); paintLive();
       if(wasLive&&!S.live&&!S.test) resumeBlack().then(function(){
         if(S.view==='home') renderHome();
@@ -1490,10 +2792,12 @@ window.LOOMX={S:S,api:api,go:go,calibrate:calibrate,
   addOutput:addOutput,removeOutput:removeOutput,setOutCount:setOutCount,freePin:freePin,MAXOUT:MAXOUT,
   sheets:{
   global:sheetGlobal,ports:sheetPorts,wifi:sheetWifi,proto:sheetProto,ap:sheetAp,name:sheetName,
-  firmware:sheetFirmware,backup:sheetBackup},
-  closeSheet:function(){closeSheet()},toggleTest:toggleTest,uniCount:uniCount,
+  controllerType:sheetControllerType,firmware:sheetFirmware,backup:sheetBackup},
+  closeSheet:function(){closeSheet()},toggleTest:toggleTest,testOutput:testOutput,uniCount:uniCount,
   overrideLive:overrideLive,resumeLive:resumeLive,paintLive:paintLive,syncLive:syncLive,
-  totalPx:totalPx,totalA:totalA,typeOf:typeOf};
+  totalPx:totalPx,totalA:totalA,typeOf:typeOf,
+  ota:{check:checkOtaUpdate,install:installOtaUpdate,validateManifest:validateOtaManifest,
+    sha256:sha256HexSync}};
 })();
 </script>
 </body>
