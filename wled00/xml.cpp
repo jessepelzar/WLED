@@ -651,8 +651,6 @@ void getSettingsJS(byte subPage, Print& settingsScript)
     fpass[l] = 0;
     memset(fpass,'0',l);
     printSetFormValue(settingsScript,PSTR("PIN"),fpass);
-    printSetFormCheckbox(settingsScript,PSTR("NO"),otaLock);
-    printSetFormCheckbox(settingsScript,PSTR("OW"),wifiLock);
     printSetFormCheckbox(settingsScript,PSTR("AO"),aOtaEnabled);
     printSetFormCheckbox(settingsScript,PSTR("SU"),otaSameSubnet);
     char tmp_buf[128];

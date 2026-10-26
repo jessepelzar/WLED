@@ -1039,7 +1039,7 @@ void Segment::refreshLightCapabilities() const {
     if (index == 0xFFFF) continue;  // invalid/missing  pixel
     for (unsigned b = 0; b < BusManager::getNumBusses(); b++) {
       const Bus *bus = BusManager::getBus(b);
-      if (!bus || !bus->isOk()) break;
+      if (!bus || !bus->isOk()) continue;
       if (bus->containsPixel(index)) {
         if (bus->hasRGB() || (strip.cctFromRgb && bus->hasCCT())) capabilities |= SEG_CAPABILITY_RGB;
         if (!strip.cctFromRgb && bus->hasCCT())                   capabilities |= SEG_CAPABILITY_CCT;
@@ -1203,6 +1203,7 @@ void WS2812FX::finalizeInit() {
   enumerateLedmaps();
 
   _hasWhiteChannel = _isOffRefreshRequired = false;
+  BusManager::prepareCountPreviews(busConfigs);
   BusManager::removeAll();
   // TODO: ideally we would free everything segment related here to reduce fragmentation (pixel buffers, ledamp, segments, etc) but that somehow leads to heap corruption if touchig any of the buffers.
   unsigned digitalCount = 0;
@@ -1278,7 +1279,8 @@ void WS2812FX::finalizeInit() {
   _length = 0;
   for (size_t i=0; i<BusManager::getNumBusses(); i++) {
     Bus *bus = BusManager::getBus(i);
-    if (!bus || !bus->isOk() || bus->getStart() + bus->getLength() > MAX_LEDS) break;
+    if (!bus || !bus->isOk()) continue; // disabled output must not prevent later outputs from starting
+    if (bus->getStart() + bus->getLength() > MAX_LEDS) break;
     //RGBW mode is enabled if at least one of the strips is RGBW
     _hasWhiteChannel |= bus->hasWhite();
     //refresh is required to remain off if at least one of the strips requires the refresh.
@@ -1287,7 +1289,7 @@ void WS2812FX::finalizeInit() {
     if (busEnd > _length) _length = busEnd;
     // This must be done after all buses have been created, as some kinds (parallel I2S) interact
     bus->begin();
-    bus->setBrightness(scaledBri(bri));
+    bus->setMasterBrightness(scaledBri(bri));
   }
   BusManager::initializeABL(); // init brightness limiter
   DEBUG_PRINTF_P(PSTR("Heap after buses: %d\n"), ESP.getFreeHeap());
@@ -1675,6 +1677,7 @@ void WS2812FX::blendSegment(const Segment &topSegment) const {
 }
 
 void WS2812FX::show() {
+  if (getLengthTotal() == 0) return; // all configured outputs are disabled
   if (!_pixels) {
     DEBUGFX_PRINTLN(F("Error: no _pixels!"));
     errorFlag = ERR_NORAM;
@@ -1706,6 +1709,7 @@ void WS2812FX::show() {
   if (callback) callback(); // will call setPixelColor or setRealtimePixelColor
 
   // paint actual pixels
+  BusManager::updateCountPreviews(showNow);
   int oldCCT = Bus::getCCT(); // store original CCT value (since it is global)
   // when cctFromRgb is true we implicitly calculate WW and CW from RGB values (cct==-1)
   if (cctFromRgb) BusManager::setSegmentCCT(-1);
@@ -1865,7 +1869,7 @@ uint16_t WS2812FX::getLengthPhysical() const {
 bool WS2812FX::hasRGBWBus() const {
   for (size_t b = 0; b < BusManager::getNumBusses(); b++) {
     const Bus *bus = BusManager::getBus(b);
-    if (!bus || !bus->isOk()) break;
+    if (!bus || !bus->isOk()) continue;
     if (bus->hasRGB() && bus->hasWhite()) return true;
   }
   return false;
@@ -1875,7 +1879,7 @@ bool WS2812FX::hasCCTBus() const {
   if (cctFromRgb && !correctWB) return false;
   for (size_t b = 0; b < BusManager::getNumBusses(); b++) {
     const Bus *bus = BusManager::getBus(b);
-    if (!bus || !bus->isOk()) break;
+    if (!bus || !bus->isOk()) continue;
     if (bus->hasCCT()) return true;
   }
   return false;
@@ -2025,7 +2029,7 @@ bool WS2812FX::checkSegmentAlignment() const {
   for (const Segment &seg : _segments) {
     for (unsigned b = 0; b<BusManager::getNumBusses(); b++) {
       const Bus *bus = BusManager::getBus(b);
-      if (!bus || !bus->isOk()) break;
+      if (!bus || !bus->isOk()) continue;
       if (seg.start == bus->getStart() && seg.stop == bus->getStart() + bus->getLength()) aligned = true;
     }
     if (seg.start == 0 && seg.stop == _length) aligned = true;

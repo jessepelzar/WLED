@@ -17,6 +17,7 @@ public:
   void localMAC(uint8_t* MAC);
   bool isConnected();
   bool isEthernet();
+  bool isEthernetLinkUp();
 };
 
 extern NetworkClass Network;

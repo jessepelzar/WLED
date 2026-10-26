@@ -50,6 +50,7 @@ void toggleOnOff()
     briLast = bri;
     bri = 0;
   }
+  BusManager::setOutputPower(bri > 0);
   stateChanged = true;
 }
 

@@ -372,7 +372,7 @@ void handleIO()
 
 void handleOnOff(bool forceOff)
 {
-  if (strip.getBrightness() && !forceOff) {
+  if ((strip.getBrightness() || BusManager::hasLockedOutput() || BusManager::hasCountPreview()) && !forceOff) {
     lastOnTime = millis();
     if (offMode) {
       BusManager::on();

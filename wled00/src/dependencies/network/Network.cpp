@@ -5,7 +5,7 @@ IPAddress NetworkClass::localIP()
   IPAddress localIP;
 #if defined(ARDUINO_ARCH_ESP32) && defined(WLED_USE_ETHERNET)
   localIP = ETH.localIP();
-  if (localIP[0] != 0) {
+  if (isEthernetLinkUp() && localIP[0] != 0) {
     return localIP;
   }
 #endif
@@ -20,7 +20,7 @@ IPAddress NetworkClass::localIP()
 IPAddress NetworkClass::subnetMask()
 {
 #if defined(ARDUINO_ARCH_ESP32) && defined(WLED_USE_ETHERNET)
-  if (ETH.localIP()[0] != 0) {
+  if (isEthernet()) {
     return ETH.subnetMask();
   }
 #endif
@@ -33,7 +33,7 @@ IPAddress NetworkClass::subnetMask()
 IPAddress NetworkClass::gatewayIP()
 {
 #if defined(ARDUINO_ARCH_ESP32) && defined(WLED_USE_ETHERNET)
-  if (ETH.localIP()[0] != 0) {
+  if (isEthernet()) {
       return ETH.gatewayIP();
   }
 #endif
@@ -79,7 +79,15 @@ bool NetworkClass::isConnected()
 bool NetworkClass::isEthernet()
 {
 #if defined(ARDUINO_ARCH_ESP32) && defined(WLED_USE_ETHERNET)
-  return (ETH.localIP()[0] != 0) && ETH.linkUp();
+  return (ETH.localIP()[0] != 0) && isEthernetLinkUp();
+#endif
+  return false;
+}
+
+bool NetworkClass::isEthernetLinkUp()
+{
+#if defined(ARDUINO_ARCH_ESP32) && defined(WLED_USE_ETHERNET)
+  return ETH.linkUp();
 #endif
   return false;
 }
