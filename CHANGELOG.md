@@ -1,5 +1,10 @@
 ## Loomx changelog (newest first)
 
+#### 2026-10-27 — Stage 5: static IP → DHCP fallback (branch `stage-5-dhcp-fallback`)
+-   With a static IP configured, if there is no link or the gateway does not answer ARP within `loomx.dhcpFallback` seconds after boot (default 60; 0 = off; 10–3600), the node switches to DHCP for this boot (Wi-Fi reconnect / `ETH.config` to DHCP) and announces itself (mDNS + one-shot sys-info UDP once the lease is up). `loomx.dhcpFallbackPersist` also clears the saved static address. Gateway reachability uses an lwIP ARP request from the tcpip thread.
+-   Pure decision logic `wled00/loomx_dhcp_fallback.h`, host-tested (grace period, link/gateway, once per boot, disabled, millis rollover, clamping). `/loomx/node` reports `net.dhcpFallback {timeout, persist, active}`.
+-   Build: vx4 RAM 81,752 B, Flash 1,343,697 B (85.4%); vx8 RAM 81,696 B, Flash 1,336,333 B (85.0%).
+
 #### 2026-10-27 — Stage 2: node info, discovery service and limits (branch `stage-2-node-info`)
 -   `GET /loomx/node` (schema `loomx-node/1`, read-only, no PIN): MAC id, model, firmware, network (IP/mask/gw, DHCP, eth/wifi link, RSSI, channel, hostname), E1.31 settings, per-output pin/length/type/order/start pixel with first/last universe and DMX channel, total pixels, universe count, `configRev`, uptime and free heap. Implemented in `wled00/loomx_node.cpp`.
 -   Universe/channel math extracted to `wled00/loomx_dmx_math.h` (pure, host-compiled) and used by both the E1.31 receiver (`e131.cpp`) and `/loomx/node`; a host test proves it equals the previous receiver formula for every start address. The ArtPoll end-universe cap is now exact (it could previously report one extra universe).

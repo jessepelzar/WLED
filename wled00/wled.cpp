@@ -247,6 +247,7 @@ void WLED::loop()
   yield();
   if (configNeedsWrite) serializeConfigToFS();
   loomxHandleAnnounce(); // AI: one-shot sys-info UDP + mDNS TXT refresh after a save
+  loomxHandleDhcpFallback(); // AI: static IP -> DHCP when link/gateway never come up
 
   yield();
   handleWs();
@@ -733,7 +734,7 @@ void WLED::initConnection()
   WiFi.setHostname(hostname);
 #endif
 
-  if (multiWiFi[selectedWiFi].staticIP != 0U && multiWiFi[selectedWiFi].staticGW != 0U) {
+  if (!loomxForceDhcp && multiWiFi[selectedWiFi].staticIP != 0U && multiWiFi[selectedWiFi].staticGW != 0U) { // AI: DHCP fallback
     WiFi.config(multiWiFi[selectedWiFi].staticIP, multiWiFi[selectedWiFi].staticGW, multiWiFi[selectedWiFi].staticSN, dnsAddress);
   } else {
     WiFi.config(IPAddress((uint32_t)0), IPAddress((uint32_t)0), IPAddress((uint32_t)0));

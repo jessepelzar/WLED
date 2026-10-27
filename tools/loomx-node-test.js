@@ -200,4 +200,56 @@ for (const [scenario, description] of Object.entries({
   mid: 'mid-universe start address and DRGB dimmer slot',
   limits: '900 px outputs and 8 outputs fit in 48 universes',
 })) test(description, () => execFileSync(path.join(directory, 'test'), [scenario]));
+
+// Static IP -> DHCP fallback (wled00/loomx_dhcp_fallback.h).
+const fallbackDir = fs.mkdtempSync(path.join(os.tmpdir(), 'loomx-fallback-'));
+fs.writeFileSync(path.join(fallbackDir, 'test.cpp'), String.raw`
+#include "loomx_dhcp_fallback.h"
+#include <cassert>
+#include <cstdio>
+using namespace loomx;
+int main() {
+  FallbackInputs in;
+  in.staticConfigured = false;
+  assert(decideDhcpFallback(in) == FallbackDecision::Idle);          // DHCP: nothing to do
+  in.staticConfigured = true; in.timeoutMs = 60000; in.sinceMs = 1000;
+  in.nowMs = 30000;
+  assert(decideDhcpFallback(in) == FallbackDecision::Waiting);       // grace period
+  in.nowMs = 61000;
+  assert(decideDhcpFallback(in) == FallbackDecision::FallBack);      // no link after 60 s
+  in.linkUp = true;
+  assert(decideDhcpFallback(in) == FallbackDecision::FallBack);      // link but no gateway
+  in.gatewayReachable = true;
+  assert(decideDhcpFallback(in) == FallbackDecision::Healthy);       // keep the static IP
+  in.gatewayReachable = false; in.decided = true;
+  assert(decideDhcpFallback(in) == FallbackDecision::Idle);          // decided once per boot
+  in.decided = false; in.timeoutMs = 0;
+  assert(decideDhcpFallback(in) == FallbackDecision::Idle);          // disabled
+  // millis() rollover: 10 s elapsed across the wrap is still inside 60 s.
+  in.timeoutMs = 60000; in.sinceMs = 0xFFFFF000u; in.nowMs = 0x00001000u + 5000u;
+  assert(decideDhcpFallback(in) == FallbackDecision::Waiting);
+  assert(clampFallbackSeconds(0) == 0 && clampFallbackSeconds(-5) == 0);
+  assert(clampFallbackSeconds(3) == 10 && clampFallbackSeconds(60) == 60 && clampFallbackSeconds(99999) == 3600);
+  std::puts("ok");
+}
+`);
+test('DHCP fallback decision: grace period, link/gateway, once per boot, rollover', () => {
+  execFileSync('c++', ['-std=c++17', '-Wall', '-Wextra', '-Werror', '-I', path.join(root, 'wled00'),
+    path.join(fallbackDir, 'test.cpp'), '-o', path.join(fallbackDir, 'test')]);
+  execFileSync(path.join(fallbackDir, 'test'));
+});
+
+test('DHCP fallback is wired into Wi-Fi and Ethernet static config, persisted and announced', () => {
+  assert.ok(read('wled00/wled.cpp').includes('if (!loomxForceDhcp && multiWiFi[selectedWiFi].staticIP'));
+  assert.ok(read('wled00/network.cpp').includes('if (!loomxForceDhcp && multiWiFi[0].staticIP'));
+  assert.ok(read('wled00/wled.cpp').includes('loomxHandleDhcpFallback();'));
+  const cfg = read('wled00/cfg.cpp');
+  assert.ok(cfg.includes('loomxCfg[F("dhcpFallback")] = loomxDhcpFallbackSec'));
+  assert.ok(cfg.includes('loomx::clampFallbackSeconds(loomxCfg[F("dhcpFallback")]'));
+  const node = read('wled00/loomx_node.cpp');
+  const handler = node.slice(node.indexOf('void loomxHandleDhcpFallback()'));
+  assert.ok(handler.includes('loomxAnnouncePending = true'));
+  assert.ok(handler.includes('tcpip_callback(probeGatewayArp'));
+  assert.match(read('wled00/wled.h'), /loomxDhcpFallbackSec _INIT\(60\)/);
+});
 // AI: end

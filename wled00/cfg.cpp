@@ -1,4 +1,5 @@
 #include "wled.h"
+#include "loomx_dhcp_fallback.h"
 #include "wled_ethernet.h"
 
 /*
@@ -78,6 +79,14 @@ bool deserializeConfig(JsonObject doc, bool fromFS) {
 
   // AI: Loomx config revision is owned by the node; never taken from a remote /json/cfg write.
   if (fromFS) loomxConfigRev = doc[F("loomx")][F("rev")] | loomxConfigRev;
+  {
+    JsonObject loomxCfg = doc[F("loomx")];
+    if (!loomxCfg.isNull()) {
+      if (!loomxCfg[F("dhcpFallback")].isNull())
+        loomxDhcpFallbackSec = loomx::clampFallbackSeconds(loomxCfg[F("dhcpFallback")].as<int>());
+      CJSON(loomxDhcpFallbackPersist, loomxCfg[F("dhcpFallbackPersist")]);
+    }
+  }
 
   JsonObject id = doc["id"];
   getStringFromJson(cmDNS, id[F("mdns")], 33);
@@ -989,6 +998,8 @@ void serializeConfig(JsonObject root) {
 
   JsonObject loomxCfg = root.createNestedObject(F("loomx")); // AI: Loomx node metadata
   loomxCfg[F("rev")] = loomxConfigRev;
+  loomxCfg[F("dhcpFallback")] = loomxDhcpFallbackSec;
+  loomxCfg[F("dhcpFallbackPersist")] = loomxDhcpFallbackPersist;
 
   root[F("vid")] = VERSION;
 

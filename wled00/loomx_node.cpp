@@ -3,6 +3,13 @@
 // the _loomx._tcp mDNS service and the one-shot announce after config saves.
 #include "wled.h"
 #include "loomx_dmx_math.h"
+#include "loomx_dhcp_fallback.h"
+#ifdef ARDUINO_ARCH_ESP32
+#include <atomic>
+#include <lwip/etharp.h>
+#include <lwip/netif.h>
+#include <lwip/tcpip.h>
+#endif
 
 #ifndef WLED_PRODUCT_NAME
   #define WLED_PRODUCT_NAME "WLED"
@@ -106,6 +113,10 @@ void serializeLoomxNode(JsonObject root) {
   net[F("rssi")] = wifi ? WiFi.RSSI() : 0;
   net[F("channel")] = wifi ? WiFi.channel() : 0;
   net[F("hostname")] = cmDNS;
+  JsonObject fallback = net.createNestedObject(F("dhcpFallback"));
+  fallback[F("timeout")] = loomxDhcpFallbackSec;
+  fallback[F("persist")] = loomxDhcpFallbackPersist;
+  fallback[F("active")] = loomxForceDhcp;
 
   JsonObject e131 = root.createNestedObject(F("e131"));
   e131[F("enabled")] = receiveDirect && DMXMode != DMX_MODE_DISABLED;
@@ -183,11 +194,81 @@ void loomxBeginMdns() {
 }
 
 void loomxHandleAnnounce() {
-  if (!loomxAnnouncePending || !interfacesInited) return;
+  if (!loomxAnnouncePending || !interfacesInited || !Network.isConnected()) return;
   loomxAnnouncePending = false;
   // One-shot even when periodic node broadcasts are off, so Sense/Form
   // refresh right after a configuration change.
   sendSysInfoUDP();
   if (strlen(cmDNS) > 0) loomxSetMdnsTxt();
+}
+
+#ifdef ARDUINO_ARCH_ESP32
+namespace {
+std::atomic<bool> gatewayAnswered{false};
+
+// Runs in the lwIP thread: ask for the gateway's MAC and record whether the
+// ARP table already has it (an answer to an earlier request).
+void probeGatewayArp(void *arg) {
+  ip4_addr_t gateway;
+  gateway.addr = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(arg));
+  struct netif *netif = netif_default;
+  if (!netif) return;
+  struct eth_addr *mac = nullptr;
+  const ip4_addr_t *ip = nullptr;
+  if (etharp_find_addr(netif, &gateway, &mac, &ip) >= 0) gatewayAnswered = true;
+  else etharp_request(netif, &gateway);
+}
+} // namespace
+#endif
+
+// Static IP safety net (see loomx_dhcp_fallback.h). Checked once per second.
+void loomxHandleDhcpFallback() {
+#ifdef ARDUINO_ARCH_ESP32
+  static uint32_t lastCheck = 0, since = 0;
+  static bool decided = false;
+  const uint32_t now = millis();
+  if (now - lastCheck < 1000) return;
+  lastCheck = now;
+  const bool ethernet = Network.isEthernet();
+  const size_t active = ethernet ? 0 : selectedWiFi;
+  const bool staticConfigured = !loomxForceDhcp && active < multiWiFi.size()
+    && multiWiFi[active].staticIP != (uint32_t)0U && multiWiFi[active].staticGW != (uint32_t)0U;
+  if (!staticConfigured) { since = now; gatewayAnswered = false; return; }
+  const bool linkUp = Network.isConnected();
+  if (linkUp && !gatewayAnswered) {
+    tcpip_callback(probeGatewayArp, reinterpret_cast<void *>(static_cast<uintptr_t>(
+      static_cast<uint32_t>(multiWiFi[active].staticGW))));
+  }
+  loomx::FallbackInputs inputs;
+  inputs.staticConfigured = true;
+  inputs.decided = decided;
+  inputs.timeoutMs = static_cast<uint32_t>(loomxDhcpFallbackSec) * 1000U;
+  inputs.nowMs = now;
+  inputs.sinceMs = since;
+  inputs.linkUp = linkUp;
+  inputs.gatewayReachable = gatewayAnswered;
+  switch (loomx::decideDhcpFallback(inputs)) {
+    case loomx::FallbackDecision::Healthy:
+      decided = true;
+      break;
+    case loomx::FallbackDecision::FallBack:
+      decided = true;
+      loomxForceDhcp = true;
+      if (loomxDhcpFallbackPersist) {
+        multiWiFi[active].staticIP = multiWiFi[active].staticGW = (uint32_t)0U;
+        configNeedsWrite = true;
+      }
+      DEBUG_PRINTLN(F("Loomx: static IP unreachable, falling back to DHCP"));
+#ifdef WLED_USE_ETHERNET
+      if (ethernet) ETH.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+      else
+#endif
+      forceReconnect = true;
+      loomxAnnouncePending = true; // mDNS + sys-info once the DHCP lease is up
+      break;
+    default:
+      break;
+  }
+#endif
 }
 // AI: end

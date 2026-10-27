@@ -301,6 +301,7 @@ void sendSysInfoUDP();
 void serializeLoomxNode(JsonObject root);
 void loomxBeginMdns();
 void loomxHandleAnnounce();
+void loomxHandleDhcpFallback();
 #ifndef WLED_DISABLE_ESPNOW
 void espNowSentCB(uint8_t* address, uint8_t status);
 void espNowReceiveCB(uint8_t* address, uint8_t* data, uint8_t len, signed int rssi, bool broadcast);

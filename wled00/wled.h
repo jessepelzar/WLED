@@ -477,6 +477,9 @@ WLED_GLOBAL uint16_t e131Universe _INIT(1);                       // settings fo
 WLED_GLOBAL bool loomxUniverseConfigured _INIT(false);            // true after the start universe is explicitly saved in the Loomx UI
 WLED_GLOBAL uint32_t loomxConfigRev _INIT(0);                     // AI: incremented on every cfg.json write, reported by /loomx/node
 WLED_GLOBAL bool loomxAnnouncePending _INIT(false);               // AI: one-shot sys-info UDP + mDNS refresh after a config save
+WLED_GLOBAL uint16_t loomxDhcpFallbackSec _INIT(60);              // AI: static IP -> DHCP after this many s without link/gateway (0 = off)
+WLED_GLOBAL bool loomxDhcpFallbackPersist _INIT(false);           // AI: also clear the saved static IP when falling back
+WLED_GLOBAL bool loomxForceDhcp _INIT(false);                     // AI: runtime: ignore the static IP for this boot
 WLED_GLOBAL uint16_t e131Port _INIT(5568);                        // DMX in port. E1.31 default is 5568, Art-Net is 6454
 WLED_GLOBAL byte e131Priority _INIT(0);                           // E1.31 port priority (if != 0 priority handling is active)
 WLED_GLOBAL E131Priority highPriority _INIT(3);                   // E1.31 highest priority tracking, init = timeout in seconds
