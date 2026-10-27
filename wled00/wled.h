@@ -538,6 +538,9 @@ WLED_GLOBAL bool useESPNowSync       _INIT(false);  // use ESP-NOW wireless tech
 //WLED_GLOBAL char linked_remote[13]   _INIT("");     // MAC of ESP-NOW remote (Wiz Mote)
 WLED_GLOBAL std::vector<std::array<char, 13>> linked_remotes; // MAC of ESP-NOW remotes (Wiz Mote)
 WLED_GLOBAL char last_signal_src[13] _INIT("");     // last seen ESP-NOW sender
+WLED_GLOBAL bool loomxEspNowEnabled _INIT(false);   // AI: Loomx ESP-NOW backup channel (opt-in)
+WLED_GLOBAL uint8_t loomxEspNowChannel _INIT(1);    // AI: pinned channel for Ethernet-only units
+WLED_GLOBAL char loomxEspNowKey[65] _INIT("");     // AI: per-installation HMAC key, hex (wsec.json only)
 #endif
 
 // Time CONFIG

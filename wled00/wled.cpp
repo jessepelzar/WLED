@@ -248,6 +248,7 @@ void WLED::loop()
   if (configNeedsWrite) serializeConfigToFS();
   loomxHandleAnnounce(); // AI: one-shot sys-info UDP + mDNS TXT refresh after a save
   loomxHandleDhcpFallback(); // AI: static IP -> DHCP when link/gateway never come up
+  loomxEspNowLoop(); // AI: ESP-NOW heartbeat, time base and recovery commands
 
   yield();
   handleWs();

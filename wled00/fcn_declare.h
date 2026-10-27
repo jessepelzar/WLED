@@ -296,6 +296,9 @@ void handleNotifications();
 void setRealtimePixel(uint16_t i, byte r, byte g, byte b, byte w);
 void refreshNodeList();
 void sendSysInfoUDP();
+bool loomxEspNowReceive(const uint8_t *data, uint8_t length); // AI: loomx_espnow.cpp
+void loomxEspNowLoop();
+void serializeLoomxEspNow(JsonObject net);
 
 //loomx_node.cpp
 void serializeLoomxNode(JsonObject root);

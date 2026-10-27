@@ -905,6 +905,7 @@ void espNowSentCB(uint8_t* address, uint8_t status) {
 
 // ESP-NOW message receive callback function
 void espNowReceiveCB(uint8_t* address, uint8_t* data, uint8_t len, signed int rssi, bool broadcast) {
+  if (loomxEspNowReceive(data, len)) return; // AI: signed Loomx frames are handled in the main loop
   sprintf_P(last_signal_src, PSTR("%02x%02x%02x%02x%02x%02x"), address[0], address[1], address[2], address[3], address[4], address[5]);
 
   #ifdef WLED_DEBUG

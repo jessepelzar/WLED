@@ -1,5 +1,11 @@
 ## Loomx changelog (newest first)
 
+#### 2026-10-27 — Stage 8: ESP-NOW backup channel (branch `stage-8-espnow`)
+-   `wled00/loomx_espnow_codec.h` (pure, shared with Form): frames `LX` v1 with type, sender MAC, counter (12-bit persisted boot epoch + 20-bit sequence), shared time, payload and an 8-byte HMAC-SHA256 tag (in-header SHA-256/HMAC); heartbeat (26 B), time (5 B), command (9 B) and ack (6 B) — never pixel data, all ≤ 250 B. Replay guard per sender (32), time-base estimator, channel plan (Wi-Fi follows the AP; Ethernet pins `loomx.espnow.ch` and rescans 1-13 when time beacons stop for 30 s).
+-   `wled00/loomx_espnow.cpp`: heartbeats every 5 s; commands (revert to DHCP, re-announce, identify = 3 s white blink over the realtime path) must target this MAC or all, pass the replay guard and be within ±10 s of Form's time; acks are sent back. Hooked in front of WLED's ESP-NOW receive callback; Loomx frames never reach WLED sync/remote handling.
+-   Config: `loomx.espnow {en, ch}` in cfg.json (opt-in, default off), key `loomxEspNowKey` (64 hex) only in wsec.json, settable via `/json/cfg` `loomx.espnow.key` with the PIN; `/loomx/node` reports `net.espnow {enabled, keySet, channel, synced, offsetMs}` (never the key).
+-   Tests: `tools/loomx-espnow-test.js`. Build: vx4 RAM 83,472 B, Flash 1,348,581 B (85.7%); vx8 RAM 83,416 B, Flash 1,341,341 B (85.3%).
+
 #### 2026-10-27 — Stage 5: static IP → DHCP fallback (branch `stage-5-dhcp-fallback`)
 -   With a static IP configured, if there is no link or the gateway does not answer ARP within `loomx.dhcpFallback` seconds after boot (default 60; 0 = off; 10–3600), the node switches to DHCP for this boot (Wi-Fi reconnect / `ETH.config` to DHCP) and announces itself (mDNS + one-shot sys-info UDP once the lease is up). `loomx.dhcpFallbackPersist` also clears the saved static address. Gateway reachability uses an lwIP ARP request from the tcpip thread.
 -   Pure decision logic `wled00/loomx_dhcp_fallback.h`, host-tested (grace period, link/gateway, once per boot, disabled, millis rollover, clamping). `/loomx/node` reports `net.dhcpFallback {timeout, persist, active}`.

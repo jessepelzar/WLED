@@ -117,6 +117,7 @@ void serializeLoomxNode(JsonObject root) {
   fallback[F("timeout")] = loomxDhcpFallbackSec;
   fallback[F("persist")] = loomxDhcpFallbackPersist;
   fallback[F("active")] = loomxForceDhcp;
+  serializeLoomxEspNow(net);
 
   JsonObject e131 = root.createNestedObject(F("e131"));
   e131[F("enabled")] = receiveDirect && DMXMode != DMX_MODE_DISABLED;
