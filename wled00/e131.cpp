@@ -1,4 +1,5 @@
 #include "wled.h"
+#include "loomx_dmx_math.h"
 
 #define MAX_3_CH_LEDS_PER_UNIVERSE 170
 #define MAX_4_CH_LEDS_PER_UNIVERSE 128
@@ -310,7 +311,6 @@ void handleDMXData(uint16_t uni, uint16_t dmxChannels, uint8_t* e131_data, uint8
       {
         const bool is4Chan = (DMXMode == DMX_MODE_MULTIPLE_RGBW);
         const unsigned dmxChannelsPerLed = is4Chan ? 4 : 3;
-        const unsigned ledsPerUniverse = is4Chan ? MAX_4_CH_LEDS_PER_UNIVERSE : MAX_3_CH_LEDS_PER_UNIVERSE;
         uint8_t stripBrightness = bri;
         unsigned previousLeds, dmxOffset, ledsTotal;
 
@@ -329,8 +329,9 @@ void handleDMXData(uint16_t uni, uint16_t dmxChannels, uint8_t* e131_data, uint8
           // All subsequent universes start at the first channel.
           dmxOffset = (mde == REALTIME_MODE_ARTNET) ? 0 : 1;
           const unsigned dimmerOffset = (DMXMode == DMX_MODE_MULTIPLE_DRGB) ? 1 : 0;
-          unsigned ledsInFirstUniverse = (((MAX_CHANNELS_PER_UNIVERSE - DMXAddress) + dmxLenOffset) - dimmerOffset) / dmxChannelsPerLed;
-          previousLeds = ledsInFirstUniverse + (previousUniverses - 1) * ledsPerUniverse;
+          // AI: shared with /loomx/node (loomx_dmx_math.h)
+          const loomx::DmxLayout layout = loomx::dmxLayout(is4Chan, dimmerOffset == 1, DMXAddress);
+          previousLeds = loomx::previousLeds(layout, previousUniverses);
           ledsTotal = previousLeds + (dmxChannels / dmxChannelsPerLed);
         }
 
@@ -393,26 +394,13 @@ static void handleArtnetPollReply(IPAddress ipAddress) {
     case DMX_MODE_MULTIPLE_RGBW:
       {
         bool is4Chan = (DMXMode == DMX_MODE_MULTIPLE_RGBW);
-        const unsigned dmxChannelsPerLed = is4Chan ? 4 : 3;
         const unsigned dimmerOffset = (DMXMode == DMX_MODE_MULTIPLE_DRGB) ? 1 : 0;
-        const unsigned dmxLenOffset = (DMXAddress == 0) ? 0 : 1; // For legacy DMX start address 0
-        const unsigned ledsInFirstUniverse = (((MAX_CHANNELS_PER_UNIVERSE - DMXAddress) + dmxLenOffset) - dimmerOffset) / dmxChannelsPerLed;
+        // AI: shared with /loomx/node (loomx_dmx_math.h)
+        const loomx::DmxLayout layout = loomx::dmxLayout(is4Chan, dimmerOffset == 1, DMXAddress);
         const unsigned totalLen = strip.getLengthTotal();
-
-        if (totalLen > ledsInFirstUniverse) {
-          const unsigned ledsPerUniverse = is4Chan ? MAX_4_CH_LEDS_PER_UNIVERSE : MAX_3_CH_LEDS_PER_UNIVERSE;
-          const unsigned remainLED = totalLen - ledsInFirstUniverse;
-
-          endUniverse += (remainLED / ledsPerUniverse);
-
-          if ((remainLED % ledsPerUniverse) > 0) {
-            endUniverse++;
-          }
-
-          if ((endUniverse - startUniverse) > E131_MAX_UNIVERSE_COUNT) {
-            endUniverse = startUniverse + E131_MAX_UNIVERSE_COUNT - 1;
-          }
-        }
+        unsigned universes = loomx::universeCount(layout, totalLen);
+        if (universes > E131_MAX_UNIVERSE_COUNT) universes = E131_MAX_UNIVERSE_COUNT;
+        endUniverse = startUniverse + universes - 1;
         break;
       }
     default:

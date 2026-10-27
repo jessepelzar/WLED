@@ -246,6 +246,7 @@ void WLED::loop()
   // AI: end
   yield();
   if (configNeedsWrite) serializeConfigToFS();
+  loomxHandleAnnounce(); // AI: one-shot sys-info UDP + mDNS TXT refresh after a save
 
   yield();
   handleWs();
@@ -874,6 +875,7 @@ void WLED::initInterfaces()
     MDNS.addService("http", "tcp", 80);
     MDNS.addService("wled", "tcp", 80);
     MDNS.addServiceTxt("wled", "tcp", "mac", escapedMac.c_str());
+    loomxBeginMdns(); // AI: _loomx._tcp with id/model/ver/uni/rev TXT
   }
   server.begin();
 

@@ -1362,6 +1362,7 @@ $('#hId').onclick=function(){
    WLED tops out at 10 LED buses and the board only has so many usable pins, so
    the + is disabled for a reason rather than failing after the fact. */
 var MAXOUT=8;
+var MAX_OUTPUT_PX=900; // AI: firmware clamps each output to 900 pixels (LOOMX_MAX_LEDS_PER_OUTPUT)
 function freePin(){
   for(var i=0;i<PINS.length;i++){
     var p=PINS[i], taken=S.outs.some(function(o){return o.pin===p});
@@ -1479,9 +1480,10 @@ function renderOuts(){
         '<span class="lbl" style="display:block;margin-bottom:7px">Pixels</span>'+
         '<div class="step">'+
           '<button data-d="-1" data-i="'+i+'">&minus;</button>'+
-          '<label class="qty"><input type="text" inputmode="numeric" value="'+o.len+'" data-len="'+i+'"></label>'+
+          '<label class="qty"><input type="text" inputmode="numeric" max="'+MAX_OUTPUT_PX+'" value="'+o.len+'" data-len="'+i+'"></label>'+
           '<button data-d="1" data-i="'+i+'">+</button>'+
         '</div>'+
+        '<small class="pxmax" data-pxmax="'+i+'" style="display:block;margin-top:5px;opacity:.7">Up to '+MAX_OUTPUT_PX+' pixels per output</small>'+
         '<div class="pair">'+
           '<label class="fld"><span class="lbl">LED type</span><select class="sel" data-type="'+i+'">'+
             TYPES.map(function(x){return '<option'+(x.n===o.type?' selected':'')+'>'+x.n+'</option>'}).join('')+
@@ -1516,7 +1518,7 @@ function renderOuts(){
       lastPress=now;
       var o=S.outs[i];
       if(!o) return;
-      o.len=clamp(o.len+d,0,2000);
+      o.len=clamp(o.len+d,0,MAX_OUTPUT_PX);
       var f=$('[data-len="'+i+'"]'); if(f) f.value=o.len;
       liveOut(i);
       push('len'+i,function(){return api.setBus(i,{len:o.len})});
@@ -1531,8 +1533,12 @@ function renderOuts(){
         if(commit) f.value=S.outs[i].len;
         return;
       }
-      var value=clamp(parseInt(digits,10),0,2000);
-      if(value!==parseInt(digits,10)) f.value=value;
+      var value=clamp(parseInt(digits,10),0,MAX_OUTPUT_PX);
+      if(value!==parseInt(digits,10)){
+        f.value=value;
+        var hint=$('[data-pxmax="'+i+'"]');
+        if(hint){ hint.textContent='Limited to '+MAX_OUTPUT_PX+' pixels per output'; hint.style.color='#fbbf24'; hint.style.opacity='1'; }
+      }
       S.outs[i].len=value;
       liveOut(i);
       push('len'+i,function(){return api.setBus(i,{len:S.outs[i].len})},commit?80:550);

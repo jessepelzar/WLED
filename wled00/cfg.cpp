@@ -76,6 +76,9 @@ bool deserializeConfig(JsonObject doc, bool fromFS) {
 
   long vid = doc[F("vid")] | VERSION; // 2605010 note: "vid" can be used to detect an update from older versions but only on first call, it is written to the new VID after buses are initialized
 
+  // AI: Loomx config revision is owned by the node; never taken from a remote /json/cfg write.
+  if (fromFS) loomxConfigRev = doc[F("loomx")][F("rev")] | loomxConfigRev;
+
   JsonObject id = doc["id"];
   getStringFromJson(cmDNS, id[F("mdns")], 33);
   getStringFromJson(serverDescription, id[F("name")], 33);
@@ -322,6 +325,11 @@ bool deserializeConfig(JsonObject doc, bool fromFS) {
       if (!Bus::isVirtual(ledType)) {
         if (pins[0] != loomxDataPins[s]) needsSave = true;
         pins[0] = loomxDataPins[s];
+        // AI: clamp saved lengths to the Loomx per-output limit and persist it
+        if (length > LOOMX_MAX_LEDS_PER_OUTPUT) {
+          length = LOOMX_MAX_LEDS_PER_OUTPUT;
+          needsSave = true;
+        }
       }
 #endif
       bool reversed = elm["rev"];
@@ -962,6 +970,7 @@ void serializeConfigToFS() {
 
   JsonObject root = pDoc->to<JsonObject>();
 
+  loomxConfigRev++; // AI: every saved configuration gets a new revision
   serializeConfig(root);
 
   File f = WLED_FS.open(FPSTR(s_cfg_json), "w");
@@ -970,12 +979,16 @@ void serializeConfigToFS() {
   releaseJSONBufferLock();
 
   configNeedsWrite = false;
+  loomxAnnouncePending = true; // AI: tell Sense/Form right away (handled in WLED::loop)
 }
 
 void serializeConfig(JsonObject root) {
   JsonArray rev = root.createNestedArray("rev");
   rev.add(1); //major settings revision
   rev.add(0); //minor settings revision
+
+  JsonObject loomxCfg = root.createNestedObject(F("loomx")); // AI: Loomx node metadata
+  loomxCfg[F("rev")] = loomxConfigRev;
 
   root[F("vid")] = VERSION;
 

@@ -1,0 +1,9 @@
+{"schema":"loomx-node/1","id":"a1b2c3d4e5f6","mac":"a1:b2:c3:d4:e5:f6","model":"VX8",
+ "name":"Stage left","fw":{"wled":"16.0.0","loomx":"1.4.0","commit":"c3f7ce11"},
+ "net":{"ip":"192.168.1.41","mask":"255.255.255.0","gw":"192.168.1.1","dhcp":true,"link":"eth","rssi":0,"channel":0,"hostname":"vx8-stage-left"},
+ "e131":{"enabled":true,"multicast":false,"port":5568,"startUniverse":1,"startAddress":1,"mode":"multi_rgb","maxUniverses":48},
+ "outputs":[
+  {"index":0,"pin":0,"len":300,"maxLen":900,"type":"WS2812","order":"GRB","startPixel":0,"universe":1,"dmxChannel":1,"endUniverse":2,"endDmxChannel":390},
+  {"index":1,"pin":1,"len":900,"maxLen":900,"type":"WS2812","order":"GRB","startPixel":300,"universe":2,"dmxChannel":391,"endUniverse":8,"endDmxChannel":30}
+ ],
+ "totalPixels":1200,"universeCount":8,"configRev":17,"uptime":1234,"freeHeap":123456}

@@ -1,3 +1,16 @@
+## Loomx changelog (newest first)
+
+#### 2026-10-27 — Stage 2: node info, discovery service and limits (branch `stage-2-node-info`)
+-   `GET /loomx/node` (schema `loomx-node/1`, read-only, no PIN): MAC id, model, firmware, network (IP/mask/gw, DHCP, eth/wifi link, RSSI, channel, hostname), E1.31 settings, per-output pin/length/type/order/start pixel with first/last universe and DMX channel, total pixels, universe count, `configRev`, uptime and free heap. Implemented in `wled00/loomx_node.cpp`.
+-   Universe/channel math extracted to `wled00/loomx_dmx_math.h` (pure, host-compiled) and used by both the E1.31 receiver (`e131.cpp`) and `/loomx/node`; a host test proves it equals the previous receiver formula for every start address. The ArtPoll end-universe cap is now exact (it could previously report one extra universe).
+-   `configRev` (uint32, cfg.json `loomx.rev`) increments on every `serializeConfigToFS`; it is only read from flash, never from a remote `/json/cfg` body.
+-   mDNS `_loomx._tcp` on port 80 next to `_wled._tcp`, TXT `id`, `model`, `ver`, `uni`, `rev` (refreshed after each config save).
+-   One-shot `sendSysInfoUDP()` after every config save, even when node broadcasts are off, so Sense/Form refresh immediately.
+-   `E131_MAX_UNIVERSE_COUNT` is 48 on all ESP32 builds (Ethernet and Wi-Fi; was 20/12); ESP8266 stays 9. Per-universe state is one sequence byte, so static RAM grows by 28 bytes (vx4 81,696 → 81,736 B).
+-   900 pixels per physical output (`LOOMX_MAX_LEDS_PER_OUTPUT`, with `LOOMX_FIXED_OUTPUT_CONFIG`): clamped in `BusConfig` (all config paths), saved lengths are clamped and re-saved on load, and the node UI limits the stepper/typed value to 900 with a message.
+-   Known limits: in multicast mode the ESP32 lwIP IGMP table (default 8 groups) limits how many universes can be joined; unicast (the Loomx default) is unaffected. 8 × 900 RGB pixels (7,200) need about 8 B/pixel of buffers plus driver memory and may exceed `MAX_LED_MEMORY` (85 KB) — verify on hardware (Stage 10).
+-   Tests: `tools/loomx-node-test.js` (schema fixture, serializer keys, route without PIN, mDNS TXT, configRev, limits, compiled math tests: RGB, RGBW, mid-universe start, DRGB, 900 px outputs, 8 outputs ≤ 48 universes).
+
 ## WLED changelog
 
 #### Build 2410270
